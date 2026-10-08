@@ -1,0 +1,10 @@
+sample	key	case	person	uln	methylation	rna_seq	plot_label	short_label	role	sample_date	hsct_date	material	vaf_gene	vaf_pct	vaf_note	status	subject	tp_label	short	disease	clone	clone_ann	clone_colour	vaf_source	rna_label	rna_colour	note
+DONOR_T0	D18	CASE1	A	ULN_7	analysed	no	Donor at donation*	Donor at donation*	Donor, at donation	YYYY-MM-DD		material	GENE		not tested	provisional	donor										
+RECIP_D30	D30	CASE1	A	ULN_3	analysed	yes	Day 30	Day 30	Recipient, day 30 after HSCT	YYYY-MM-DD	YYYY-MM-DD	BMNC	GENE		not tested	final	patient	Day 30 post-HSCT	D30	no	unknown	not tested	#A3A3A3	not tested	Day 30	#4C72B0	
+RECIP_T1	Y35	CASE1	A	ULN_4	analysed	yes	3.5 yr	3.5 yr	Recipient, 3.5 years after HSCT	YYYY-MM-DD	YYYY-MM-DD	BMNC	GENE	NN		final	patient	3.5 yr post-HSCT	3.5yr	no	present	VAF NN%	#8C6BB1	measured	3.5 yr	#DD8452	
+RECIP_DX	DX	CASE1	A	ULN_5	analysed	yes	DDHN	DDHN	Recipient, DDHN diagnosis	YYYY-MM-DD	YYYY-MM-DD	BMNC	GENE	NN		final	patient	DDHN diagnosis	DDHN	DDHN	present	VAF NN%	#6A51A3	measured	DDHN	#C44E52	
+DONOR_T1	D23	CASE1	A	ULN_6	analysed	yes	Donor, later	Donor later	Donor, later sample	YYYY-MM-DD		PBMNC	GENE	NN		final	donor	Donor	Donor	no	present	VAF NN%	#CBB8E0	measured	Donor	#55A868	
+CASE2_A	T2A	CASE2	B	ULN_1	analysed	no	Case 2: sample A*	Case 2: A*	To be confirmed	YYYY-MM-DD		material	GENE		to be confirmed	provisional											
+CASE2_DX	T2DX	CASE2	B	ULN_2	analysed	no	Case 2: DDHN	Case 2: DDHN	Recipient, DDHN diagnosis	YYYY-MM-DD		material	GENE	NN		provisional											
+EXTRA	X	none	C	ULN_8	extra	no	Extra	Extra	Not in the design							excluded											
+NEG	NEG	none		ULN_9	control	no			Negative control							excluded											

@@ -1,0 +1,7 @@
+id	num	den	label	class	meaning
+C1_clone	RECIP_T1	RECIP_D30	Clonal establishment (T1 vs D30)	primary	clone grows; no disease at either end
+C2_transform	RECIP_DX	RECIP_T1	Transformation (DDHN vs T1)	primary	clone size flat while disease appears
+C3_cumulative	RECIP_DX	RECIP_D30	Cumulative (DDHN vs D30)	primary	sum of both axes
+C4_DDHN_vs_donor	RECIP_DX	DONOR_T1	DDHN vs donor	context	marrow vs blood; context only
+C5_2yr_vs_donor	RECIP_T1	DONOR_T1	T1 vs donor	context	marrow vs blood; context only
+C6_D30_vs_donor	RECIP_D30	DONOR_T1	D30 vs donor  [RULER]	ruler	reference: no disease, small clone at both ends

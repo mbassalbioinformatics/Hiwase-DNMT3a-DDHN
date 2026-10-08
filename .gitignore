@@ -1,0 +1,25 @@
+# local configuration: sample details and paths, never committed
+config/paths.R
+config/paths.sh
+config/samples.tsv
+config/comparisons.tsv
+config/rnaseq_contrasts.tsv
+
+# data, results and run logs
+*.log
+*.tmp
+*.bam
+*.bai
+*.xz
+*.gz
+*.rds
+*.RData
+*.html
+*.png
+*.pdf
+
+# system and editor files
+.DS_Store
+.Rhistory
+.Rproj.user/
+__pycache__/
