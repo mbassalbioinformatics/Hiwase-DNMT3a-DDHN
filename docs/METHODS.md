@@ -128,13 +128,14 @@ moves it the same way at raw p < 0.10.
   the reference contrast.
 - **Gene panels.** Fourteen panels from MSigDB (C2, C5 GO:BP, C8, Hallmark) and curated
   lists, every gene with its source (`07_gene_panels.R`).
-- **Chromatin loops.** Hi-C loops of sorted HSC, CMP, GMP and MEP (two replicates each),
-  10 kb-1 Mb, pooled; partner anchors merged within 10 kb and kept when present in >= 2
+- **Chromatin loops.** Hi-C of sorted HSC/MPP, CMP, GMP and MEP (two replicates each; GEO
+  GSE231486, Subramanian 2023), reprocessed into loop calls; loops of 10 kb-1 Mb, pooled; partner anchors merged within 10 kb and kept when present in >= 2
   of the 8 files. For each DMR in an anchor: the partner's genes, any DMR there, and the
   most significant change metilene tested inside it.
-- **Locus plots.** Gene model and CpG islands, each CpG linked to a column of a
-  per-sample heatmap (every CpG with >= 1 read in any library), the DMR boxed, the
-  gene's RNA-seq beside it and Hi-C partners below.
+- **Locus plots.** Gene models (overlapping genes on separate lanes) and CpG islands, each
+  CpG linked to a column of a per-sample heatmap (every CpG with >= 1 read in any library),
+  the DMR boxed, the gene's RNA-seq beside it and Hi-C partners below. Window: the DMR
+  +/- 1.5 kb, extended to the gene's TSS when it lies within 5 kb.
 
 ## 6. References
 
@@ -151,3 +152,4 @@ moves it the same way at raw p < 0.10.
 - Liberzon A et al. The MSigDB hallmark gene set collection. *Cell Syst* 2015;1:417-25.
 - Brenet F et al. DNA methylation of the first exon is tightly linked to transcriptional silencing. *PLoS One* 2011;6:e14524.
 - Anastasiadi D et al. Consistent inverse correlation between DNA methylation of the first intron and gene expression. *Epigenetics Chromatin* 2018;11:37.
+- Subramanian S et al. Genome-wide transcription factor-binding maps reveal cell-specific changes in the regulatory architecture of human HSPCs. *Blood* 2023;142:1448-62. (GEO GSE231486)

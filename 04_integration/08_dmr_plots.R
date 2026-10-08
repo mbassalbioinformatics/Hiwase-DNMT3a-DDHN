@@ -60,6 +60,14 @@ called <- dcast(m[, .(dmr, id, v = 1L)], dmr ~ id, value.var = "v", fill = 0L)
 u <- merge(u, called, by = "dmr")
 mat <- as.matrix(u[, paste0("meth_", smp), with = FALSE]); colnames(mat) <- lab[smp]; rownames(mat) <- u$name
 cmat <- as.matrix(u[, intersect(comp$id, names(u)), with = FALSE])
+# short comparison names for the "called in" columns: the part in brackets when it names the
+# two samples, else the label without its bracket; * provisional
+short_lab <- function(l) {
+  inner <- sub(".*\\((.* vs .*)\\).*", "\\1", l)
+  s <- ifelse(inner != l, inner, sub(" \\(.*\\)$", "", l))
+  sub("^TET2 case: ", "TET2: ", sub("^Engraftment: ", "", s))
+}
+colnames(cmat) <- comp[match(colnames(cmat), id), paste0(short_lab(label), ifelse(status == "provisional", " *", ""))]
 ctx_cols <- c(`switch region (promoter-exon1-intron1)` = "#7B3294", `gene body (beyond intron 1)` = "#C2A5CF", intergenic = "#E7D4E8")
 draw_hm <- function(rows, file, title) {
   if (length(rows) < 2) return(invisible())
@@ -67,8 +75,8 @@ draw_hm <- function(rows, file, title) {
                       col = list(context = ctx_cols, CGI = c(CGI = "#1B7837", shore = "#7FBF7B", shelf = "#D9F0D3", `open sea` = "white")),
                       annotation_name_gp = gpar(fontsize = 8))
   hc <- Heatmap(cmat[rows, , drop = FALSE], name = "called in", col = c(`0` = "white", `1` = "black"),
-                show_heatmap_legend = FALSE, column_names_gp = gpar(fontsize = 7), column_names_rot = 60,
-                width = unit(ncol(cmat) * 3.2, "mm"), cluster_columns = FALSE)
+                show_heatmap_legend = FALSE, column_names_gp = gpar(fontsize = 8), column_names_rot = 90,
+                width = unit(ncol(cmat) * 4.2, "mm"), cluster_columns = FALSE)
   mm <- mat[rows, , drop = FALSE]
   imp <- mm; for (i in seq_len(nrow(imp))) imp[i, is.na(imp[i, ])] <- mean(imp[i, ], na.rm = TRUE)
   imp[is.na(imp)] <- 0.5                                   # rows with no value at all
@@ -79,7 +87,7 @@ draw_hm <- function(rows, file, title) {
                 column_names_rot = 40, right_annotation = ha, column_title_gp = gpar(fontsize = 9),
                 na_col = "grey88")
   png(file, width = 11, height = max(6, min(26, 0.11 * length(rows) + 3)), units = "in", res = 250)
-  draw(hm + hc, column_title = title, merge_legend = TRUE)
+  draw(hm + hc, column_title = title, merge_legend = TRUE, padding = unit(c(2, 32, 2, 2), "mm"))   # room on the left for the slanted sample names
   invisible(dev.off())
 }
 draw_hm(seq_len(nrow(u)), file.path(OUT, "heatmap_all_dmrs.png"),

@@ -48,5 +48,5 @@ Versions used for the analysis.
 | bedtools | to be recorded |
 | samtools | to be recorded |
 
-Record the server versions with, for example, `metilene --version`, `defiant -h | head`,
-`findMotifsGenome.pl 2>&1 | head`, `bedtools --version`, `samtools --version | head -1`.
+Record the server versions with `bash 01_methylation_server/00_tool_versions.sh`, which looks for
+each tool on PATH and in every conda environment.

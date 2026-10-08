@@ -100,7 +100,8 @@ draw(Heatmap(hm, name = "TF activity\n(ulm score)",
              column_names_gp = gpar(fontsize = 9),
              cell_fun = function(j, i, x, y, w, h, fill) if (!is.na(pm[i, j]) && pm[i, j] < 0.05)
                grid.text("*", x, y, gp = gpar(fontsize = 9)),
-             column_title = "TF activity from target genes (CollecTRI, decoupleR ulm); * FDR < 0.05"))
+             column_title = "TF activity from target genes (CollecTRI, decoupleR ulm); * FDR < 0.05"),
+     padding = unit(c(2, 30, 2, 2), "mm"))                     # room on the left for the slanted contrast names
 invisible(dev.off())
 
 ## ---- TF mRNA against TF activity ----------------------------------------------
@@ -109,17 +110,18 @@ focus <- c("TP53", "MYC", "E2F1", "STAT1", "IRF1", "IRF7", "GATA1", "KLF1", "SPI
 for (cid in c(don, "C2_transform")) {
   d <- merge(res[contrast == cid, .(tf, score, fdr)],
              de[contrast == cid, .(tf = symbol, lfc = lfc_shrunk)], by = "tf")
-  d[, lab := fifelse(tf %in% focus | (fdr < 0.01 & abs(score) > quantile(abs(score), 0.97)), tf, "")]
+  d[, lab := fifelse(tf %in% focus | fdr < 0.05, tf, "")]               # every TF at FDR < 0.05, plus the focus TFs
   p <- ggplot(d, aes(lfc, score)) +
     geom_hline(yintercept = 0, colour = "grey80") + geom_vline(xintercept = 0, colour = "grey80") +
     geom_point(aes(colour = fdr < 0.05), size = 1.4, alpha = 0.7) +
-    geom_text_repel(aes(label = lab), size = 3, max.overlaps = 40, min.segment.length = 0) +
+    geom_text_repel(aes(label = lab), size = 3, max.overlaps = Inf, min.segment.length = 0, segment.size = 0.25,
+                    segment.colour = "grey50", box.padding = 0.25, force = 2, seed = 1) +
     scale_colour_manual(values = c(`TRUE` = "#B2182B", `FALSE` = "grey60"), name = "activity FDR < 0.05") +
     labs(x = "TF mRNA change (shrunk log2FC)", y = "TF activity (ulm score)",
          title = paste0("TF mRNA vs activity: ", CONTRASTS[cid, label]),
          subtitle = "Activity is read from the TF's targets; it can move while the TF's own mRNA does not") +
     theme_bw(base_size = 11)
-  ggsave(file.path(OUT, sprintf("tf_mrna_vs_activity_%s.png", cid)), p, width = 8, height = 6.5, dpi = 300)
+  ggsave(file.path(OUT, sprintf("tf_mrna_vs_activity_%s.png", cid)), p, width = 10, height = 8, dpi = 300)
 }
 
 ## ---- TP53: directly activated vs repressed targets ---------------------------------

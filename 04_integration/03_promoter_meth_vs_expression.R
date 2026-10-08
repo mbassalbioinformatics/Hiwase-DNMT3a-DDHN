@@ -30,10 +30,11 @@
 #   promoter_meth_vs_expr_long.tsv     every gene x comparison
 #   concordant_genes.tsv               hypo-up and hyper-down genes
 #   switch_tests.tsv                   per comparison
-#   starburst_<contrast>_A_concordant.png   every gene in the two concordant quadrants named
-#   starburst_<contrast>_B_discordant.png   every gene in the two discordant quadrants named
+#   starburst_<contrast>_A_concordant.png   all genes, then the two quadrants where expression moves
+#                                           against methylation, zoomed, every gene named
+#   starburst_<contrast>_B_discordant.png   the same for the two quadrants where it moves with methylation
 ###############################################################################
-suppressPackageStartupMessages({ library(data.table); library(ggplot2); library(ggrepel) })
+suppressPackageStartupMessages({ library(data.table); library(ggplot2); library(ggrepel); library(patchwork) })
 source("config/paths.R")
 OUT <- file.path(INT, "meth_vs_expr"); dir.create(OUT, showWarnings = FALSE)
 source("03_rnaseq/00_config.R")
@@ -103,37 +104,62 @@ print(tests[, .(label, genes, switches, on, off, changed = switches_with_express
                 direction_p = signif(direction_p, 2), pct_changed_switch, pct_changed_other,
                 OR = round(enrichment_OR, 2), enrichment_p = signif(enrichment_p, 2))])
 
-## ---- starburst plots: every gene in the coloured quadrants named ---------------------
-cols <- c(`hypo-up` = "#2166AC", `hyper-down` = "#B2182B", `hypo-down` = "#7FB7D8", `hyper-up` = "#F09A6B", other = "grey82")
+## ---- starburst plots ---------------------------------------------------------------
+# Per comparison two figures: A, the quadrants where expression moves against
+# methylation (hypo-up, hyper-down); B, those where it moves with it (hypo-down,
+# hyper-up). Each shows all genes small on the left, then each of its two
+# quadrants zoomed, with every gene in the quadrant named at a readable size.
+cols  <- c(`hypo-up` = "#2166AC", `hyper-down` = "#B2182B", `hypo-down` = "#5E9BC9", `hyper-up` = "#E07B39", other = "grey82")
+qsign <- list(`hypo-up` = c(-1, 1), `hyper-down` = c(1, -1), `hypo-down` = c(-1, -1), `hyper-up` = c(1, 1))
+qname <- c(`hypo-up` = "Methylation lost, expression up", `hyper-down` = "Methylation gained, expression down",
+           `hypo-down` = "Methylation lost, expression down", `hyper-up` = "Methylation gained, expression up")
 xg <- mg[chr == "chrX", gene]
 for (cid in CONTRASTS$id) {
   d <- long[contrast == cid & !is.na(delta) & is.finite(lfc)]
+  d[, lab := paste0(gene, fifelse(mane %in% xg, " (X)", ""))]
+  d[, face := fifelse(sig %in% TRUE, "bold", "plain")]
   is_don <- cid %in% CONTRASTS[class == "context", id]
   s <- tests[contrast == cid]
+  xlab <- sprintf("Promoter methylation change, %s - %s (points)", CONTRASTS[cid, num], CONTRASTS[cid, den])
   for (panel in c("A_concordant", "B_discordant")) {
     q <- if (panel == "A_concordant") c("hypo-up", "hyper-down") else c("hypo-down", "hyper-up")
-    d[, lab := fifelse(class %in% q, paste0(gene, fifelse(mane %in% xg, " (X)", "")), "")]
-    d[, face := fifelse(sig %in% TRUE, "bold", "plain")]
-    p <- ggplot(d, aes(delta * 100, lfc)) +
-      geom_hline(yintercept = c(-LFC_MIN, LFC_MIN), colour = "grey85", linetype = 2) +
-      geom_vline(xintercept = c(-D_MIN, D_MIN) * 100, colour = "grey85", linetype = 2) +
-      geom_point(data = d[class == "other"], colour = "grey82", size = 0.6) +
-      { if (is_don) geom_point(data = d[class != "other"], aes(colour = class, shape = meth_compartment), size = 1.5)
-        else geom_point(data = d[class != "other"], aes(colour = class), size = 1.5) } +
-      geom_text_repel(data = d[lab != ""], aes(label = lab, fontface = face), size = 2.3, max.overlaps = Inf,
-                      min.segment.length = 0, segment.size = 0.2, segment.colour = "grey45", box.padding = 0.18,
-                      force = 2, seed = 1) +
-      scale_colour_manual(values = cols, name = NULL) +
-      { if (is_don) scale_shape_manual(values = c(`FALSE` = 16, `TRUE` = 4), name = "also in reference\n(day 30 vs donor)") } +
-      labs(x = sprintf("Promoter methylation change, %s - %s (percentage points)", CONTRASTS[cid, num], CONTRASTS[cid, den]),
-           y = "Expression change (shrunk log2FC)",
-           title = sprintf("Promoter methylation vs expression: %s  (%s quadrants named)", CONTRASTS[cid, label],
-                           ifelse(panel == "A_concordant", "concordant", "discordant")),
-           subtitle = sprintf(paste0("%d genes. Promoter switches (change >= %d points crossing 50%%): %d; with an expression change %d, ",
-                                     "of which %d opposite to methylation (binomial p %.2g). Bold = DE in the RNA-seq; (X) = X-linked"),
-                              s$genes, round(100 * SW_MIN), s$switches, s$switches_with_expression_change, s$concordant, s$direction_p)) +
-      theme_bw(base_size = 11) + theme(plot.subtitle = element_text(size = 8.5))
-    ggsave(file.path(OUT, sprintf("starburst_%s_%s.png", cid, panel)), p, width = 15, height = 11, dpi = 250)
+    ov <- ggplot(d, aes(delta * 100, lfc)) +
+      geom_hline(yintercept = c(-LFC_MIN, LFC_MIN), colour = "grey75", linetype = 2) +
+      geom_vline(xintercept = c(-D_MIN, D_MIN) * 100, colour = "grey75", linetype = 2) +
+      geom_point(data = d[!class %in% q], colour = "grey82", size = 0.5) +
+      geom_point(data = d[class %in% q], aes(colour = class), size = 1.2) +
+      scale_colour_manual(values = cols, guide = "none") +
+      labs(x = xlab, y = "Expression change (shrunk log2FC)", title = "All genes") +
+      theme_bw(base_size = 12)
+    zoom <- lapply(q, function(k) {
+      dq <- d[class == k]
+      # the panel reaches past the thresholds (dashed) so names near the busy corner have room
+      xr <- if (qsign[[k]][1] < 0) c(min(dq$delta, -D_MIN) * 100 - 4, -D_MIN * 100 + 5) else c(D_MIN * 100 - 5, max(dq$delta, D_MIN) * 100 + 4)
+      yr <- if (qsign[[k]][2] < 0) c(min(dq$lfc, -LFC_MIN) - 0.3, -LFC_MIN + 0.35) else c(LFC_MIN - 0.35, max(dq$lfc, LFC_MIN) + 0.3)
+      ggplot(dq, aes(delta * 100, lfc)) +
+        geom_hline(yintercept = qsign[[k]][2] * LFC_MIN, colour = "grey70", linetype = 2) +
+        geom_vline(xintercept = qsign[[k]][1] * D_MIN * 100, colour = "grey70", linetype = 2) +
+        { if (is_don) geom_point(aes(shape = meth_compartment), colour = cols[[k]], size = 2.2)
+          else geom_point(colour = cols[[k]], size = 2.2) } +
+        geom_text_repel(aes(label = lab, fontface = face), size = 3.4, max.overlaps = Inf, min.segment.length = 0,
+                        segment.size = 0.25, segment.colour = "grey55", box.padding = 0.18, point.padding = 0.1,
+                        force = 3, force_pull = 0.3, max.time = 5, max.iter = 1e5, seed = 1, xlim = xr, ylim = yr) +
+        { if (is_don) scale_shape_manual(values = c(`FALSE` = 16, `TRUE` = 4), drop = FALSE,
+                                         name = "Promoter also changes in the reference comparison (day 30 vs donor)") } +
+        coord_cartesian(xlim = xr, ylim = yr, expand = FALSE) +
+        labs(x = xlab, y = "Expression change (shrunk log2FC)", title = sprintf("%s: %d genes", qname[[k]], nrow(dq))) +
+        theme_bw(base_size = 12) + theme(plot.title = element_text(colour = cols[[k]], face = "bold"), legend.position = "bottom")
+    })
+    fig <- (ov | zoom[[1]] | zoom[[2]]) + plot_layout(widths = c(0.55, 1, 1)) +
+      plot_annotation(
+        title = sprintf("Promoter methylation against expression: %s", CONTRASTS[cid, label]),
+        subtitle = sprintf(paste0("%d genes. Coloured: methylation change >= %d points and |log2FC| >= %.1f. Every gene in the two quadrants where ",
+                                  "expression moves %s methylation is named; bold = differentially expressed, (X) = X-linked.\n",
+                                  "Promoter switches (change >= %d points, crossing 50%%): %d; %d change expression, %d against methylation (binomial p %.2g)."),
+                           s$genes, round(100 * D_MIN), LFC_MIN, ifelse(panel == "A_concordant", "against", "with"),
+                           round(100 * SW_MIN), s$switches, s$switches_with_expression_change, s$concordant, s$direction_p),
+        theme = theme(plot.title = element_text(size = 18, face = "bold"), plot.subtitle = element_text(size = 12)))
+    ggsave(file.path(OUT, sprintf("starburst_%s_%s.png", cid, panel)), fig, width = 26, height = 12.5, dpi = 200)
   }
 }
 unlink(file.path(OUT, sprintf("starburst_%s.png", CONTRASTS$id)))          # the earlier single-plot version

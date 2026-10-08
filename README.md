@@ -1,4 +1,6 @@
-# DDHN: DNA methylation (TAPS) and RNA-seq
+# Hiwase-DNMT3a-DDHN
+
+DNA methylation (TAPS) and RNA-seq of donor-cell-derived haematological neoplasms.
 
 Analysis code for a study of donor-cell-derived haematological neoplasms (DDHN)
 after allogeneic haematopoietic stem cell transplantation. Serial samples from two
@@ -37,7 +39,7 @@ methylation + RNA-seq ── 04_integration/01-11 ──► region methylation, 
 | Folder | Runs on | Contents |
 |---|---|---|
 | `config/` | both | path and sample templates; copy each `*.example.*` to the real name and fill it in |
-| `01_methylation_server/` | server | Msuite2, TAPS inputs, metilene / Defiant, HOMER, VAF pileups |
+| `01_methylation_server/` | server | Msuite2, TAPS inputs, metilene / Defiant, HOMER, VAF pileups, tool versions |
 | `02_methylation_local/` | analysis computer | sample identity check |
 | `03_rnaseq/server/` | server | featureCounts, rMATS, Shiba |
 | `03_rnaseq/` | analysis computer | RNA-seq analysis (`00_config.R`, `01`-`08`, `dge_functions.R`) |

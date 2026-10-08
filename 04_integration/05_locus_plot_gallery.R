@@ -38,8 +38,8 @@ draw <- function(g, dir, title = NULL) {
   if (!g %in% has_model) return(invisible(FALSE))
   dir.create(dir, showWarnings = FALSE, recursive = TRUE)
   if (Sys.getenv("FORCE", "1") != "1" && file.exists(file.path(dir, paste0(g, ".png")))) return(invisible(TRUE))
-  ok <- tryCatch({ ggsave(file.path(dir, paste0(g, ".png")), locus_plot(L, g, title = title),
-                          width = 13, height = 5.4, dpi = 220); TRUE },
+  ok <- tryCatch({ p <- locus_plot(L, g, title = title)
+                   ggsave(file.path(dir, paste0(g, ".png")), p, width = 14, height = attr(p, "height_in"), dpi = 200); TRUE },
                  error = function(e) { message("  ", g, ": ", conditionMessage(e)); FALSE })
   invisible(ok)
 }

@@ -100,7 +100,8 @@ png(file.path(OUT, "delta_correlation.png"), width = 8.5, height = 7.5, units = 
 draw(Heatmap(cm, name = "Spearman rho", col = colorRamp2(c(-1, 0, 1), c("#2166AC", "white", "#B2182B")),
              cell_fun = function(j, i, x, y, w, h, fill) grid.text(sprintf("%.2f", cm[i, j]), x, y, gp = gpar(fontsize = 7)),
              row_names_gp = gpar(fontsize = 8), column_names_gp = gpar(fontsize = 8), column_names_rot = 45,
-             column_title = sprintf("How alike the methylation changes are (%s variable 1-kb tiles)", format(sum(var_rows), big.mark = ","))))
+             column_title = sprintf("How alike the methylation changes are (%s variable 1-kb tiles)", format(sum(var_rows), big.mark = ","))),
+     padding = unit(c(2, 25, 2, 2), "mm"))                     # room on the left for the slanted names
 invisible(dev.off())
 
 ## ---- do the TET2 case's changes fall where the DNMT3A clone's do? -------------------
