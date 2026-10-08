@@ -84,11 +84,11 @@ difference >= 0.1, <= 147 bp between CpGs, de novo segmentation). DMRs at q < 0.
 **Defiant** (second caller): `defiant -b -c 0 -d 1 -G 147 -CpN 5 -p 0.05 -R`. The
 "both" set holds metilene DMRs overlapping a Defiant DMR changing the same way.
 
-**Motifs.** HOMER `findMotifsGenome.pl <bed> hg38 <out> -size given -nomotif -cpg`
+**Motifs.** HOMER v4.11.1 `findMotifsGenome.pl <bed> hg38 <out> -size given -nomotif -cpg`
 (known motifs, CpG-normalised background) in DMRs that lost and gained methylation,
 separately, for comparisons with >= 5 DMRs in that direction.
 
-**Annotation.** HOMER `annotatePeaks.pl <bed> hg38 -annStats` (one category per DMR by
+**Annotation.** HOMER v4.11.1 `annotatePeaks.pl <bed> hg38 -annStats` (one category per DMR by
 priority, promoter-TSS = TSS -1 kb to +100 bp; observed / expected per category;
 summarised with UCSC CpG-island overlap in `04_integration/11_homer_summary.R`), and in
 `04_integration/06_dmr_master.R`: a DMR lies in a gene's regulatory switch region when
@@ -101,6 +101,9 @@ context and ENCODE cCRE class.
 
 **Libraries.** Stranded poly(A) libraries (Tecan/NuGEN Universal Plus mRNA-Seq),
 MGI DNBSEQ-G400, paired-end 100 bp. Read 1 is in the sense orientation.
+
+**Alignment.** STAR 2.7.10b, to GRCh38 as distributed in the 10x Genomics Cell Ranger
+reference 3.0.0 (alignment run outside this repository; the analysis starts from the BAMs).
 
 **Quantification.** featureCounts (Subread 2.1.1) against Ensembl 107:
 `-p --countReadPairs -M -O -J -f -d 20 -s 1 -g gene_id`, at gene level and at

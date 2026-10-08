@@ -10,7 +10,7 @@
 # copied to $DMR_BEDS; names carry the comparison and direction (gained / lost),
 # the score column the change (g1 - g2).
 #
-# USAGE (from the repository root, HOMER on PATH):
+# USAGE (from the repository root, HOMER on PATH; the analysis used HOMER v4.11.1):
 #   DMR_BEDS=/path/to/dmr/bed nohup bash 01_methylation_server/05_homer_annotation.sh > annot.log 2>&1 &
 # Output: $DMR_OUT/homer_annotation/<set>/<comparison>.annotated.txt and .annStats.txt
 ###############################################################################

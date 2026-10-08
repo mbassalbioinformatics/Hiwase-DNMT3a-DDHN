@@ -8,7 +8,7 @@
 # (known motifs only, region sizes as given, CpG-normalised background, as DMRs
 # are CpG-rich). Sets with fewer than MIN_DMR DMRs are skipped.
 #
-# USAGE (from the repository root, HOMER on PATH):
+# USAGE (from the repository root, HOMER on PATH; the analysis used HOMER v4.11.1):
 #   nohup bash 01_methylation_server/04_homer_known_motifs.sh > homer.log 2>&1 &
 # Output: $DMR_OUT/homer/<comparison>_<lost|gained>/knownResults.txt
 ###############################################################################

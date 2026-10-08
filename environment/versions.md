@@ -46,10 +46,10 @@ Recorded with `bash 01_methylation_server/00_tool_versions.sh` (PATH and every c
 | bedtools | 2.31.1 | metilene inputs |
 | metilene | not printed by the binary | |
 | Defiant | not printed by the binary | |
-| HOMER | 4.11.1 or 5.1 | two installs; the one used is to be confirmed |
+| HOMER | 4.11.1 | conda environment `chipap` |
 | featureCounts (Subread) | 2.1.1 | |
 | rMATS-turbo | 4.3.0 | |
 | Shiba | 0.8.2 | |
-| STAR | 2.7.10b | installed; RNA-seq aligner to be confirmed from the BAM header |
+| STAR | 2.7.10b | RNA-seq alignment |
 | Python | 3.9.18 | |
 | R | 4.6.1 | |
