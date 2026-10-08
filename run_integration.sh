@@ -13,6 +13,7 @@ set -uo pipefail
 cd "$(dirname "$0")"
 STEPS=(01_region_methylation 02_tf_activity 03_promoter_meth_vs_expression 04_global_direction
        07_gene_panels 06_dmr_master 08_dmr_plots 09_hic_loops 11_homer_summary
+       13_vaf_from_taps_reads 14_allelic_imbalance
        05_locus_plot_gallery 10_dmr_locus_gallery)
 LOG=integration_run.log
 want=("$@")

@@ -36,17 +36,20 @@ Versions used for the analysis.
 
 ## Server
 
-| Tool | Version |
-|---|---|
-| Msuite2 | 2.2.0 |
-| featureCounts (Subread) | 2.1.1 |
-| rMATS-turbo | 4.3.0 |
-| Shiba | to be confirmed (configuration written for 0.8.2) |
-| metilene | to be recorded |
-| Defiant | to be recorded |
-| HOMER | to be recorded |
-| bedtools | to be recorded |
-| samtools | to be recorded |
+Recorded with `bash 01_methylation_server/00_tool_versions.sh` (PATH and every conda environment).
 
-Record the server versions with `bash 01_methylation_server/00_tool_versions.sh`, which looks for
-each tool on PATH and in every conda environment.
+| Tool | Version | Note |
+|---|---|---|
+| Msuite2 | 2.2.0 | |
+| bowtie2 | 2.5.4 | used by Msuite2 |
+| samtools | 1.21 | VAF pileups |
+| bedtools | 2.31.1 | metilene inputs |
+| metilene | not printed by the binary | |
+| Defiant | not printed by the binary | |
+| HOMER | 4.11.1 or 5.1 | two installs; the one used is to be confirmed |
+| featureCounts (Subread) | 2.1.1 | |
+| rMATS-turbo | 4.3.0 | |
+| Shiba | 0.8.2 | |
+| STAR | 2.7.10b | installed; RNA-seq aligner to be confirmed from the BAM header |
+| Python | 3.9.18 | |
+| R | 4.6.1 | |

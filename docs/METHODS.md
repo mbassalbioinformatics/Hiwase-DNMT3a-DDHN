@@ -42,11 +42,38 @@ affect. Candidate sites (>= 10 reads, other-base share >= 0.25 in any library) w
 genotyped in every library (0: < 0.10; 1: 0.25-0.75; 2: > 0.90) and libraries compared
 pairwise as the share of shared sites with the same genotype.
 
-**Driver mutations** (`06_vaf_pileup.sh`). Base counts over the coding exons (+/- 10 bp)
-of 85 myeloid and clonal-haematopoiesis driver genes, MAPQ >= 10, base quality >= 20,
-read 1 and read 2 counted separately so that each base is assigned to the original top
-(read 1 forward, read 2 reverse) or bottom strand. At a CpG, C>T is read on the strand
-that does not carry the C.
+**Driver mutations** (`06_vaf_pileup.sh`, `04_integration/13_vaf_from_taps_reads.R`).
+Base counts over the coding exons (+/- 10 bp) of 85 myeloid and clonal-haematopoiesis
+driver genes (samtools mpileup, MAPQ >= 10, base quality >= 20), read 1 and read 2
+counted separately so that each base is assigned to the original top (read 1 forward,
+read 2 reverse) or bottom strand. TAPS turns a methylated C into T on the strand that
+carries it, so on the top strand a T read can be a methylated C and on the bottom strand
+an A read (top-strand view) a methylated G. Each allele is counted only where conversion
+can neither create nor hide it: alt A on the top strand, and on the bottom strand unless
+a G allele there could be a CpG G; alt T on the bottom strand, and on the top strand
+unless a C allele could be a CpG C; alt C on the bottom strand, and on the top strand
+unless the next base can be G; alt G on the top strand, and on the bottom strand unless
+the previous base can be C ("can": from the reference, or an allele seen on its clean
+strand in any library, which catches a SNP that creates a CpG next door). VAF = alt
+reads / reads on the strands used. A library carries a variant with >= 3 alt reads,
+VAF >= 10% and >= 8 reads. Within a person (same genome), a variant whose VAF differs
+between libraries (Fisher's exact test, p < 0.01) is acquired, or allelic imbalance when
+it is a germline SNP elsewhere, a known common SNP, or reaches >= 85%. Flags: alt reads
+on one strand only (none on a strand with >= 5 reads, or Fisher p < 0.05), a
+homopolymer >= 6 or di-/trinucleotide repeat x 4 within 10 bp, another variant within
+10 bp, more than one alt allele, one library with only 3 alt reads. Changes seen in a
+single library are listed with their per-strand support. 25 hotspot codons are checked
+in every library. Protein changes come from the MANE Select v1.0 CDS (checked: DNMT3A
+chr2:25,234,373 C>T = c.2645G>A p.Arg882His). Insertions and deletions are not counted.
+
+**Allelic balance** (`allele_balance_counts.py`, `04_integration/14_allelic_imbalance.R`).
+At the transversion CpG-SNPs of the identity check, the share of "other" bases on each
+strand is the B-allele fraction (BAF). Heterozygous sites are defined per person from
+the pooled libraries (BAF 0.2-0.8, >= 12 reads); per library, sites with >= 6 reads on
+the strand. In 10-Mb bins (>= 15 sites; acrocentric short arms excluded) the mean
+|BAF - 0.5| is compared with its exact binomial expectation for a balanced heterozygote
+at the same depths; excess > 0.10 with z > 4 marks allelic imbalance (LOH or a
+copy-number change in most cells).
 
 ## 3. Differentially methylated regions
 
@@ -61,7 +88,9 @@ difference >= 0.1, <= 147 bp between CpGs, de novo segmentation). DMRs at q < 0.
 (known motifs, CpG-normalised background) in DMRs that lost and gained methylation,
 separately, for comparisons with >= 5 DMRs in that direction.
 
-**Annotation.** HOMER `annotatePeaks.pl <bed> hg38 -annStats`, and in
+**Annotation.** HOMER `annotatePeaks.pl <bed> hg38 -annStats` (one category per DMR by
+priority, promoter-TSS = TSS -1 kb to +100 bp; observed / expected per category;
+summarised with UCSC CpG-island overlap in `04_integration/11_homer_summary.R`), and in
 `04_integration/06_dmr_master.R`: a DMR lies in a gene's regulatory switch region when
 it overlaps the promoter (TSS -1,500 to -1), exon 1 or intron 1 of the MANE Select v1.0
 transcript; otherwise in the gene body or intergenic. Each DMR is linked to its
@@ -144,6 +173,7 @@ moves it the same way at raw p < 0.10.
 - Jühling F et al. metilene: fast and sensitive calling of differentially methylated regions. *Genome Res* 2016;26:256-62.
 - Condon DE et al. Defiant: (DMRs: easy, fast, identification and ANnoTation). *BMC Bioinformatics* 2018;19:31.
 - Heinz S et al. Simple combinations of lineage-determining transcription factors prime cis-regulatory elements. *Mol Cell* 2010;38:576-89.
+- Danecek P et al. Twelve years of SAMtools and BCFtools. *GigaScience* 2021;10:giab008.
 - Chen Y et al. edgeR v4. *Nucleic Acids Res* 2025;53:gkaf018.
 - Badia-i-Mompel P et al. decoupleR. *Bioinform Adv* 2022;2:vbac016.
 - Müller-Dott S et al. Expanding the coverage of regulons from high-confidence prior knowledge (CollecTRI). *Nucleic Acids Res* 2023;51:10934-49.

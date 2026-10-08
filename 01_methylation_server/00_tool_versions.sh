@@ -16,23 +16,28 @@ MSUITE2=${MSUITE2:-msuite2}
 TOOLS=(msuite2 bowtie2 hisat2 samtools bedtools metilene defiant findMotifsGenome.pl annotatePeaks.pl
        featureCounts rmats.py shiba.py STAR python3 R xz)
 
-first_line() { tr -d '\r' | grep -v '^[[:space:]]*$' | head -1 | cut -c1-120; }
+first_line() { tr -d '\r' | grep -av '^[[:space:]]*$' | head -1 | cut -c1-120; }
 to() { if command -v timeout >/dev/null 2>&1; then timeout 20 "$@"; else "$@"; fi; }   # no tool may hang the script
 
 version_of() {                      # $1 tool, $2 path
   local t=$1 p=$2 v=""
   case "$t" in
-    msuite2)       v=$(grep -m1 -oiE 'version[^0-9]{0,12}[0-9]+\.[0-9]+(\.[0-9]+)?' "$p" 2>/dev/null | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?')
-                   [[ -z "$v" ]] && v=$(to "$p" -v 2>&1 | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1) ;;
-    bowtie2|hisat2|STAR) v=$(to "$p" --version 2>&1 | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+[a-z]?)?' | head -1) ;;
+    msuite2)       v=$(grep -a -m1 -oiE 'version[^0-9]{0,12}[0-9]+\.[0-9]+(\.[0-9]+)?' "$p" 2>/dev/null | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?')
+                   [[ -z "$v" ]] && v=$(to "$p" -v 2>&1 | grep -aoE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1) ;;
+    bowtie2|hisat2|STAR) v=$(to "$p" --version 2>&1 | grep -aoE '[0-9]+\.[0-9]+(\.[0-9]+[a-z]?)?' | head -1) ;;
     samtools)      v=$(to "$p" --version 2>&1 | head -1 | awk '{print $2}') ;;
     bedtools)      v=$(to "$p" --version 2>&1 | awk '{print $2}') ;;
-    metilene)      v=$(to "$p" --version 2>&1; to "$p" 2>&1) ; v=$(grep -oiE '(version|v)[: ]*[0-9]+\.[0-9]+[-.0-9]*' <<< "$v" | head -1) ;;
-    defiant)       v=$(to "$p" -h 2>&1; to "$p" --version 2>&1) ; v=$(grep -oiE 'version[: ]*[0-9]+\.[0-9]+[.0-9]*' <<< "$v" | head -1) ;;
+    metilene)      v=$(to "$p" --version 2>&1; to "$p" -h 2>&1; to "$p" 2>&1) ; v=$(grep -aoiE '(version|v)[: ]*[0-9]+\.[0-9]+[-.0-9]*' <<< "$v" | head -1)
+                   # the binary prints no version: look for one compiled into it, or in its folder name
+                   [[ -z "$v" ]] && v=$(strings "$p" 2>/dev/null | grep -m1 -oiE 'metilene[ _-]*v?[0-9]+\.[0-9]+[-.0-9]*')
+                   [[ -z "$v" ]] && v=$(readlink -f "$p" | grep -oiE 'v?[0-9]+\.[0-9]+[-.0-9]*' | tail -1) ;;
+    defiant)       v=$(to "$p" -h 2>&1; to "$p" --version 2>&1; to "$p" -v 2>&1) ; v=$(grep -aoiE '(version|v)[: ]*[0-9]+\.[0-9]+[.0-9]*' <<< "$v" | head -1)
+                   [[ -z "$v" ]] && v=$(strings "$p" 2>/dev/null | grep -m1 -oiE '(defiant|version)[ _:-]*v?[0-9]+\.[0-9]+[.0-9]*')
+                   [[ -z "$v" ]] && v=$(readlink -f "$p" | grep -oiE 'v?[0-9]+\.[0-9]+[.0-9]*' | tail -1) ;;
     findMotifsGenome.pl|annotatePeaks.pl)
                    local d; d=$(dirname "$(readlink -f "$p")")
                    v=$(awk -F'\t' '$1 == "homer" {print $2; exit}' "$d/../config.txt" "$d/config.txt" 2>/dev/null) ;;
-    featureCounts) v=$(to "$p" -v 2>&1 | grep -oE 'v[0-9.]+' | head -1) ;;
+    featureCounts) v=$(to "$p" -v 2>&1 | grep -aoE 'v[0-9.]+' | head -1) ;;
     rmats.py)      v=$(to "$p" --version 2>&1 | first_line) ;;
     shiba.py)      v=$(cat "$(dirname "$(readlink -f "$p")")/VERSION" 2>/dev/null) ;;
     python3)       v=$("$p" --version 2>&1 | awk '{print $2}') ;;

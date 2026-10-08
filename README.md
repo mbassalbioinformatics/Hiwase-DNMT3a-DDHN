@@ -22,6 +22,7 @@ TAPS FASTQ ── 01_msuite2.sh ──► alignment + per-CpG C/T counts (Msuite
                 │               ├─ 04_homer_known_motifs.sh ──► motifs in DMRs lost / gained
                 │               └─ 05_homer_annotation.sh   ──► HOMER genomic annotation
                 ├─ sample_identity_check.py ──► genotype concordance between libraries
+                │       └─ allele_balance_counts.py ──► allele balance at the same SNPs (LOH scan)
                 └─ 06_vaf_pileup.sh ──► strand-aware base counts at driver genes (VAFs)
 
 RNA BAM ── 01_featurecounts.sh ──► gene and 5'UTR counts ──► 03_rnaseq/02-06 (edgeR, NOISeq,
@@ -29,9 +30,10 @@ RNA BAM ── 01_featurecounts.sh ──► gene and 5'UTR counts ──► 03_
        ├─ 02_rmats.sh ──► 03_rnaseq/07_rmats_downstream.R
        └─ 03_shiba.sh ──► 03_rnaseq/08_shiba_downstream.R
 
-methylation + RNA-seq ── 04_integration/01-11 ──► region methylation, direction of change by
+methylation + RNA-seq ── 04_integration/01-14 ──► region methylation, direction of change by
        genomic context, promoter switches against expression, TF activity, DMR annotation,
-       gene panels, Hi-C loops, locus plots
+       gene panels, Hi-C loops, locus plots, driver mutations and VAFs from the TAPS reads,
+       allelic balance along the genome
 ```
 
 ## Layout
@@ -40,10 +42,10 @@ methylation + RNA-seq ── 04_integration/01-11 ──► region methylation, 
 |---|---|---|
 | `config/` | both | path and sample templates; copy each `*.example.*` to the real name and fill it in |
 | `01_methylation_server/` | server | Msuite2, TAPS inputs, metilene / Defiant, HOMER, VAF pileups, tool versions |
-| `02_methylation_local/` | analysis computer | sample identity check |
+| `02_methylation_local/` | analysis computer | sample identity check; allele balance at the identity SNPs |
 | `03_rnaseq/server/` | server | featureCounts, rMATS, Shiba |
 | `03_rnaseq/` | analysis computer | RNA-seq analysis (`00_config.R`, `01`-`08`, `dge_functions.R`) |
-| `04_integration/` | analysis computer | methylation and RNA-seq integration (`01`-`11`) |
+| `04_integration/` | analysis computer | methylation and RNA-seq integration (`01`-`11`); mutations and VAFs (`13`); allelic balance (`14`) |
 | `resources/` | analysis computer | pinned CollecTRI network; download notes for the other annotation |
 | `docs/METHODS.md` | | methods |
 | `environment/versions.md` | | software versions |
@@ -64,13 +66,15 @@ Every script is run from the repository root.
    bash 01_methylation_server/04_homer_known_motifs.sh
    bash 01_methylation_server/06_vaf_pileup.sh
    ```
-   Copy `<sample>_msuite2/Msuite2.CpG.meth.call.xz` and the DMR output folder to the
-   analysis computer (`emseq/` under `DATA_ROOT`).
+   Copy `<sample>_msuite2/Msuite2.CpG.meth.call.xz` and the DMR output folder (with
+   `vaf/` from `06_vaf_pileup.sh`) to the analysis computer (`emseq/` under `DATA_ROOT`).
+   `bash 01_methylation_server/00_tool_versions.sh` records the server's tool versions.
 3. **RNA-seq, on the server:** `03_rnaseq/server/01_featurecounts.sh`, `02_rmats.sh`,
    `03_shiba.sh`; copy the counts and the rMATS / Shiba folders to `rnaseq/`.
 4. **Analysis computer.**
    ```
-   python3 02_methylation_local/sample_identity_check.py <DATA_ROOT>/emseq <out_dir>
+   python3 02_methylation_local/sample_identity_check.py <DATA_ROOT>/emseq <DATA_ROOT>/emseq/00_sample_identity
+   python3 02_methylation_local/allele_balance_counts.py <DATA_ROOT>/emseq <DATA_ROOT>/emseq/00_sample_identity
    bash run_rnaseq.sh
    bash run_integration.sh
    ```
