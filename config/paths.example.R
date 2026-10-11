@@ -14,7 +14,7 @@ RES  <- file.path(INT, "resources")              # annotation downloads (see res
 COUNTS_GENE <- file.path(RNA, "GENES.counts_ensembl_FC")   # featureCounts, gene level
 COUNTS_5UTR <- file.path(RNA, "5UTR.counts_ensembl_FC")    # featureCounts, 5'UTR level
 
-MANE    <- "/path/to/MANE.GRCh38.v1.0.ensembl_genomic.gtf.gz"
+MANE    <- "/path/to/MANE.GRCh38.v1.5.ensembl_genomic.gtf.gz"
 HIC_DIR <- "/path/to/hic"                        # *_Pimanda_*.bedpe.xz (HSC, CMP, GMP, MEP; two replicates each)
 
 SAMPLE_SHEET    <- "config/samples.tsv"

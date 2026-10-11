@@ -31,7 +31,8 @@ Downloaded into `RES` (see `config/paths.R`):
 
 Elsewhere (paths in `config/paths.R`):
 
-- MANE Select v1.0 GTF (`MANE.GRCh38.v1.0.ensembl_genomic.gtf.gz`, NCBI/EMBL-EBI).
+- MANE Select v1.5 GTF (`MANE.GRCh38.v1.5.ensembl_genomic.gtf.gz`, December 2025, Ensembl 116; NCBI/EMBL-EBI,
+  https://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/current/).
 - Hi-C of sorted human HSC/MPP, CMP, GMP and MEP (two replicates each): GEO GSE231486
   (Subramanian et al., *Blood* 2023;142:1448-62), downloaded and reprocessed into loop calls
   (`*_Pimanda_*.bedpe.xz`).

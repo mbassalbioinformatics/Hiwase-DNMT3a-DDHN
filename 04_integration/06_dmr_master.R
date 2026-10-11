@@ -11,7 +11,7 @@
 #
 # For each DMR:
 #   - methylation of every sample (mean of CpGs with >= 5 reads, TAPS reading)
-#   - gene context from MANE Select v1.0. The switch region is promoter
+#   - gene context from MANE Select v1.5. The switch region is promoter
 #     (TSS -1500 to -1) + exon 1 + intron 1, where Mesa regulatory switches sit;
 #     beyond it: other exons or introns of a gene, or intergenic. Nearest TSS and
 #     signed distance (upstream negative)

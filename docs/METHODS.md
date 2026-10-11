@@ -63,7 +63,7 @@ on one strand only (none on a strand with >= 5 reads, or Fisher p < 0.05), a
 homopolymer >= 6 or di-/trinucleotide repeat x 4 within 10 bp, another variant within
 10 bp, more than one alt allele, one library with only 3 alt reads. Changes seen in a
 single library are listed with their per-strand support. 25 hotspot codons are checked
-in every library. Protein changes come from the MANE Select v1.0 CDS (checked: DNMT3A
+in every library. Protein changes come from the MANE Select v1.5 CDS (checked: DNMT3A
 chr2:25,234,373 C>T = c.2645G>A p.Arg882His). Insertions and deletions are not counted.
 
 **Allelic balance** (`allele_balance_counts.py`, `04_integration/14_allelic_imbalance.R`).
@@ -92,7 +92,7 @@ separately, for comparisons with >= 5 DMRs in that direction.
 priority, promoter-TSS = TSS -1 kb to +100 bp; observed / expected per category;
 summarised with UCSC CpG-island overlap in `04_integration/11_homer_summary.R`), and in
 `04_integration/06_dmr_master.R`: a DMR lies in a gene's regulatory switch region when
-it overlaps the promoter (TSS -1,500 to -1), exon 1 or intron 1 of the MANE Select v1.0
+it overlaps the promoter (TSS -1,500 to -1), exon 1 or intron 1 of the MANE Select v1.5
 transcript; otherwise in the gene body or intergenic. Each DMR is linked to its
 switch-region gene, else to the nearest TSS within 50 kb, and annotated with CpG-island
 context and ENCODE cCRE class.

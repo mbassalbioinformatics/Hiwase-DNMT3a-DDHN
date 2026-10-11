@@ -37,7 +37,7 @@
 # Fisher p < 0.05), low-level calls in more than one person, and support from a
 # single sample with only 3 alt reads. Variants private to one sample are listed
 # separately, with their read support per strand.
-# Protein changes from the MANE Select v1.0 CDS.
+# Protein changes from the MANE Select v1.5 CDS.
 # Indels are not counted (the pileup parser skips them), so frameshifts and
 # other small insertions/deletions are not seen here.
 #

@@ -8,7 +8,7 @@
 # calling: every gene gets a value, so subtle methylation changes can be set
 # against expression changes.
 #
-# Regions, from MANE Select v1.0 (one transcript per gene, hg38):
+# Regions, from MANE Select v1.5 (one transcript per gene, hg38):
 #   promoter  TSS -1500 to +500, strand-aware
 #   body      TSS +500 to the transcript end
 #   tiles     1 kb, chr1-22 and chrX
