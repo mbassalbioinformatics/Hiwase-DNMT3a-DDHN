@@ -32,7 +32,7 @@ L <- if (nzchar(cache) && file.exists(cache)) readRDS(cache) else load_locus_dat
   mane_gtf = MANE,
   cgi_file = file.path(RES, "cpgIslandExt.txt.gz"),
   rna_rdata = file.path(RNA, "05_processed_counts_genes", "dge_gene_level.RData"))
-L$min_cov <- as.integer(Sys.getenv("MIN_COV", "1"))   # a CpG is drawn when it has at least this many reads
+L$min_cov <- as.integer(Sys.getenv("MIN_COV", "2"))   # a CpG is drawn when it has at least this many reads
 
 m <- fread(cmd = sprintf("gzip -dc '%s'", file.path(INT, "dmr", "dmr_master.tsv.gz")))[set == "metilene"]
 lp <- fread(file.path(INT, "hic", "dmr_loops.tsv"))

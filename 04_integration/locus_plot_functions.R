@@ -8,7 +8,7 @@
 #
 #   load_locus_data()  CpG counts (TAPS reading) for the samples, MANE gene
 #                      models, CpG islands and RNA-seq values; call once.
-#                      A CpG is shown when it has >= min_cov reads (default 1).
+#                      A CpG is shown when it has >= min_cov reads (default 2).
 #   locus_plot(L, gene, region = NULL, highlight = NULL, ...)
 #                      region    c(chr, start, end); default: the promoter
 #                                window around the MANE TSS, shrunk until it
@@ -38,7 +38,7 @@ TRACK_UNIT <- 0.1        # inches per layout unit of the gene track
 MAX_LANES  <- 4L
 LABEL_SIZE <- 2.9        # mm; gene, CpG island and DMR labels
 
-load_locus_data <- function(emseq, mane_gtf, cgi_file, rna_rdata, min_cov = 1) {
+load_locus_data <- function(emseq, mane_gtf, cgi_file, rna_rdata, min_cov = 2) {
   keep <- paste0("chr", c(1:22, "X"))
   cpg <- lapply(setNames(LOCUS_SAMPLES$sample, LOCUS_SAMPLES$sample), function(s) {
     f <- file.path(emseq, paste0(s, "_msuite2"), "Msuite2.CpG.meth.call.xz")
