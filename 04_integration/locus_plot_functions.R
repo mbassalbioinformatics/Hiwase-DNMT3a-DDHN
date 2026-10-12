@@ -98,7 +98,7 @@ load_locus_data <- function(emseq, mane_gtf, cgi_file, rna_rdata, min_cov = 1) {
 
 locus_plot <- function(L, gene, region = NULL, highlight = NULL, max_cpg = 90,
                        samples = LOCUS_SAMPLES$sample, rna_note = NULL, title = NULL, all_genes = FALSE,
-                       subtitle = "Methylation per CpG (TAPS); * provisional sample role", width_in = 14) {
+                       subtitle = "Methylation per CpG (TAPS)", width_in = 14) {
   g0 <- gene
   w <- if (is.null(region)) .window_for(L, gene, max_cpg = max_cpg) else {
     tx <- L$model[gene == g0 & feature == "transcript"][1]

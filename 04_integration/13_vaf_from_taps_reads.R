@@ -412,7 +412,7 @@ if (nrow(cm)) {
     labs(x = NULL, y = "VAF, % (95% interval)",
          title = "Acquired variants and allelic imbalance, read from the TAPS libraries",
          subtitle = paste("alt reads / reads on the genotype-informative strand(s) under each point; samples of other people",
-                          "are negative controls; * provisional sample role", sep = "\n")) +
+                          "are negative controls", sep = "\n")) +
     theme_bw(base_size = 12) +
     theme(axis.text.x = element_text(size = 9, lineheight = 0.9), legend.position = "top",
           strip.text = element_text(size = 10.5), panel.grid.minor = element_blank())

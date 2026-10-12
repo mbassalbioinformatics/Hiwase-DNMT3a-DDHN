@@ -24,6 +24,11 @@ second case.
 
 ## 2. TAPS methylation
 
+**DNA** was extracted from bone-marrow or peripheral-blood mononuclear cells (or, for one
+donor sample, haematopoietic progenitor cells collected from peripheral blood) with the
+Qiagen QIAamp DNA Blood Mini Kit; where RNA-seq was also done, DNA and RNA came from the
+same cells.
+
 **Libraries** were prepared with Watchmaker TAPS+ chemistry and sequenced paired-end;
 the reads of all sequencing runs of a library were combined.
 

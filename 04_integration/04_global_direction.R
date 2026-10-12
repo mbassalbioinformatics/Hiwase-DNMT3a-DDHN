@@ -84,7 +84,7 @@ p <- ggplot(d, aes(100 * net, comparison, fill = net > 0)) +
   scale_fill_manual(values = c(`TRUE` = "#B2182B", `FALSE` = "#2166AC"), labels = c(`TRUE` = "more gains", `FALSE` = "more losses"), name = NULL) +
   labs(x = sprintf("Tiles gaining minus tiles losing methylation (%% of tiles; |change| >= %.2f)", D_CUT), y = NULL,
        title = "Direction of methylation change by genomic context",
-       subtitle = "first-named sample minus second; * provisional comparison") +
+       subtitle = paste0("first-named sample minus second", if (any(comp$status == "provisional")) "; * provisional comparison" else "")) +
   theme_bw(base_size = 10) + theme(legend.position = "bottom")
 ggsave(file.path(OUT, "direction_net.png"), p, width = 14, height = 7.5, dpi = 300)
 

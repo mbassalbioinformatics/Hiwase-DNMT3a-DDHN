@@ -55,7 +55,7 @@ if (nrow(keep)) {
     geom_point() + scale_colour_gradient2(low = "#2166AC", mid = "grey85", high = "#B2182B", name = "log2 enrichment") +
     scale_size_continuous(range = c(1, 6), name = "-log10 p") +
     labs(x = NULL, y = NULL, title = "Known motifs in DMRs (HOMER; motifs at p <= 0.01 in at least one set; p <= 0.05 shown)",
-         subtitle = "number of DMRs in brackets; * provisional comparison") +
+         subtitle = paste0("number of DMRs in brackets", if (any(comp$status == "provisional")) "; * provisional comparison" else "")) +
     theme_bw(base_size = 9) + theme(axis.text.x = element_text(angle = 50, hjust = 1, size = 7))
   ggsave(file.path(OUT, "known_motifs_dotplot.png"), p, width = 16, height = max(5, 0.16 * length(mot) + 3), dpi = 220, limitsize = FALSE)
 }
@@ -142,7 +142,7 @@ if (dir.exists(A)) {
     labs(x = "% of DMRs", y = NULL,
          title = "Where the DMRs fall (metilene DMRs, HOMER annotatePeaks.pl, hg38)",
          subtitle = paste("right of each bar: number of DMRs and the share overlapping a CpG island (CGI);",
-                          "bottom bar: share of the genome in each category; * provisional comparison", sep = "\n")) +
+                          paste0("bottom bar: share of the genome in each category", if (any(comp$status == "provisional")) "; * provisional comparison" else ""), sep = "\n")) +
     theme_bw(base_size = 12) +
     theme(panel.grid.major.y = element_blank(), panel.grid.minor = element_blank(), legend.position = "bottom",
           axis.text.y = element_text(size = 10)) +
