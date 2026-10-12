@@ -152,9 +152,12 @@ moves it the same way at raw p < 0.10.
   pELS, dELS, CTCF-only, DNase-H3K4me3, none). Overlap between comparisons by Fisher's
   exact test over tiles with data in all libraries.
 - **Methylation and expression: switches, not correlation.** A promoter switches when it
-  changes by >= 0.20 and crosses 0.5. Enrichment of expression change among switched
-  genes (Fisher) and its direction (binomial); starburst plots name every gene in each
-  quadrant (|change| >= 0.10, |log2FC| >= 0.5).
+  changes by >= 0.20 (20 points), up or down, at any level: each gene turns on or off at
+  its own methylation level, so no fixed level has to be crossed. Enrichment of
+  expression change among switched genes (Fisher) and its direction (binomial), repeated
+  with stricter definitions (>= 0.30; >= 0.20 crossing 0.5; either) as a sensitivity
+  check; starburst plots name every gene in each quadrant (|change| >= 0.10,
+  |log2FC| >= 0.5).
 - **TF activity.** decoupleR univariate linear model on each contrast's edgeR
   t-statistic with the CollecTRI network; FDR per contrast; donor contrasts read against
   the reference contrast.

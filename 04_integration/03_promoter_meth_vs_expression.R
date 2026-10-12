@@ -12,14 +12,19 @@
 #   class   |delta| >= 0.10 and |log2FC| >= 0.5, by quadrant: hypo-up and
 #           hyper-down (concordant with methylation silencing), hypo-down and
 #           hyper-up (discordant)
-#   switch  the promoter changes by >= 0.20 AND crosses 0.5, i.e. flips between
-#           mostly unmethylated and mostly methylated
+#   switch  the promoter changes by >= 0.20 (20 points, the threshold supported
+#           by the Mesa work) in either direction, whatever its starting level:
+#           each gene turns on or off at its own methylation level, so no fixed
+#           level (such as 50%) has to be crossed
 # Per comparison, two tests on the switches:
 #   direction   among switches whose gene changes expression (|log2FC| >= 0.5),
 #               is the change opposite to methylation more often than half the
 #               time (binomial)?
 #   enrichment  are switch genes more likely to change expression at all than
 #               genes whose promoter does not switch (Fisher)?
+# Sensitivity: the same two tests with stricter definitions (>= 0.30; >= 0.20
+# crossing 0.5; either of the two), to show how much each result depends on
+# the definition.
 # Reference: in the donor comparisons (C4, C5) a gene is flagged "compartment"
 # when day 30 vs donor (C6) changes its promoter the same way by >= 0.10.
 #
@@ -30,6 +35,7 @@
 #   promoter_meth_vs_expr_long.tsv     every gene x comparison
 #   concordant_genes.tsv               hypo-up and hyper-down genes
 #   switch_tests.tsv                   per comparison
+#   switch_sensitivity.tsv             the two tests under each switch definition
 #   starburst_<contrast>_A_concordant.png   all genes, then the two quadrants where expression moves
 #                                           against methylation, zoomed, every gene named
 #   starburst_<contrast>_B_discordant.png   the same for the two quadrants where it moves with methylation
@@ -66,8 +72,8 @@ long[, class := fcase(delta <= -D_MIN & lfc >= LFC_MIN, "hypo-up",
                       delta <= -D_MIN & lfc <= -LFC_MIN, "hypo-down",
                       delta >=  D_MIN & lfc >= LFC_MIN, "hyper-up",
                       default = "other")]
-long[, switch := fcase(delta >= SW_MIN & meth_den < 0.5 & meth_num >= 0.5, "switch on (gain)",
-                       delta <= -SW_MIN & meth_den >= 0.5 & meth_num < 0.5, "switch off (loss)",
+long[, switch := fcase(delta >= SW_MIN, "switch on (gain)",
+                       delta <= -SW_MIN, "switch off (loss)",
                        default = "none")]
 ref <- long[contrast == RULER_CONTRAST, .(gene, ref_delta = delta)]
 long <- merge(long, ref, by = "gene", all.x = TRUE)
@@ -103,6 +109,33 @@ fwrite(tests, file.path(OUT, "switch_tests.tsv"), sep = "\t")
 print(tests[, .(label, genes, switches, on, off, changed = switches_with_expression_change, concordant,
                 direction_p = signif(direction_p, 2), pct_changed_switch, pct_changed_other,
                 OR = round(enrichment_OR, 2), enrichment_p = signif(enrichment_p, 2))])
+
+## ---- sensitivity to the switch definition -------------------------------------------
+# The same two tests with stricter definitions: a larger change, a change that crosses
+# 50% (mostly unmethylated <-> mostly methylated), and either of the two.
+crosses <- function(d) pmin(d$meth_num, d$meth_den) < 0.5 & pmax(d$meth_num, d$meth_den) >= 0.5
+DEFS <- list(`>= 20 points (used)`                  = function(d) abs(d$delta) >= SW_MIN,
+             `>= 30 points`                         = function(d) abs(d$delta) >= 0.30,
+             `>= 20 points, crossing 50%`           = function(d) abs(d$delta) >= SW_MIN & crosses(d),
+             `>= 30 points, or >= 20 crossing 50%`  = function(d) abs(d$delta) >= 0.30 | (abs(d$delta) >= SW_MIN & crosses(d)))
+sens <- rbindlist(lapply(CONTRASTS$id, function(cid) {
+  d <- long[contrast == cid & !is.na(delta) & is.finite(lfc)]
+  if (cid %in% CONTRASTS[class == "context", id]) d <- d[meth_compartment == FALSE]
+  rbindlist(lapply(names(DEFS), function(nm) {
+    s <- DEFS[[nm]](d)
+    chg <- d[s & abs(lfc) >= LFC_MIN]
+    conc <- chg[sign(lfc) == -sign(delta)]
+    ft <- fisher.test(table(factor(s, c(TRUE, FALSE)), factor(abs(d$lfc) >= LFC_MIN, c(TRUE, FALSE))))
+    data.table(contrast = cid, label = CONTRASTS[cid, label], definition = nm, switches = sum(s),
+               switches_with_expression_change = nrow(chg), concordant = nrow(conc),
+               direction_p = if (nrow(chg)) binom.test(nrow(conc), nrow(chg), 0.5, alternative = "greater")$p.value else NA_real_,
+               enrichment_OR = unname(ft$estimate), enrichment_p = ft$p.value)
+  }))
+}))
+stopifnot(isTRUE(all.equal(sens[definition == names(DEFS)[1], enrichment_p], tests$enrichment_p)))   # first definition = the tests above
+fwrite(sens, file.path(OUT, "switch_sensitivity.tsv"), sep = "\t")
+print(sens[, .(contrast, definition, switches, changed = switches_with_expression_change, concordant,
+               direction_p = signif(direction_p, 2), OR = round(enrichment_OR, 2), enrichment_p = signif(enrichment_p, 2))])
 
 ## ---- starburst plots ---------------------------------------------------------------
 # Per comparison two figures: A, the quadrants where expression moves against
@@ -155,7 +188,7 @@ for (cid in CONTRASTS$id) {
         title = sprintf("Promoter methylation against expression: %s", CONTRASTS[cid, label]),
         subtitle = sprintf(paste0("%d genes. Coloured: methylation change >= %d points and |log2FC| >= %.1f. Every gene in the two quadrants where ",
                                   "expression moves %s methylation is named; bold = differentially expressed, (X) = X-linked.\n",
-                                  "Promoter switches (change >= %d points, crossing 50%%): %d; %d change expression, %d against methylation (binomial p %.2g)."),
+                                  "Promoter switches (change >= %d points): %d; %d change expression, %d against methylation (binomial p %.2g)."),
                            s$genes, round(100 * D_MIN), LFC_MIN, ifelse(panel == "A_concordant", "against", "with"),
                            round(100 * SW_MIN), s$switches, s$switches_with_expression_change, s$concordant, s$direction_p),
         theme = theme(plot.title = element_text(size = 18, face = "bold"), plot.subtitle = element_text(size = 12)))
