@@ -23,6 +23,7 @@ TAPS FASTQ ── 01_msuite2.sh ──► alignment + per-CpG C/T counts (Msuite
                 │               └─ 05_homer_annotation.sh   ──► HOMER genomic annotation
                 ├─ sample_identity_check.py ──► genotype concordance between libraries
                 │       └─ allele_balance_counts.py ──► allele balance at the same SNPs (LOH scan)
+                ├─ cpg_depth_summary.py ──► CpGs with >= 5 reads and their mean methylation, per library
                 └─ 06_vaf_pileup.sh ──► strand-aware base counts at driver genes (VAFs)
 
 RNA BAM ── 01_featurecounts.sh ──► gene and 5'UTR counts ──► 03_rnaseq/02-06 (edgeR, NOISeq,
@@ -42,7 +43,7 @@ methylation + RNA-seq ── 04_integration/01-14 ──► region methylation, 
 |---|---|---|
 | `config/` | both | path and sample templates; copy each `*.example.*` to the real name and fill it in |
 | `01_methylation_server/` | server | Msuite2, TAPS inputs, metilene / Defiant, HOMER, VAF pileups, tool versions |
-| `02_methylation_local/` | analysis computer | sample identity check; allele balance at the identity SNPs |
+| `02_methylation_local/` | analysis computer | sample identity check; allele balance at the identity SNPs; CpG depth summary |
 | `03_rnaseq/server/` | server | featureCounts, rMATS, Shiba |
 | `03_rnaseq/` | analysis computer | RNA-seq analysis (`00_config.R`, `01`-`08`, `dge_functions.R`) |
 | `04_integration/` | analysis computer | methylation and RNA-seq integration (`01`-`11`); mutations and VAFs (`13`); allelic balance (`14`) |
@@ -75,6 +76,7 @@ Every script is run from the repository root.
    ```
    python3 02_methylation_local/sample_identity_check.py <DATA_ROOT>/emseq <DATA_ROOT>/emseq/00_sample_identity
    python3 02_methylation_local/allele_balance_counts.py <DATA_ROOT>/emseq <DATA_ROOT>/emseq/00_sample_identity
+   python3 02_methylation_local/cpg_depth_summary.py <DATA_ROOT>/emseq <DATA_ROOT>/emseq/00_sample_identity
    bash run_rnaseq.sh
    bash run_integration.sh
    ```

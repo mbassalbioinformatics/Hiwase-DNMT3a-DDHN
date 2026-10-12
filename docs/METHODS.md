@@ -47,6 +47,10 @@ affect. Candidate sites (>= 10 reads, other-base share >= 0.25 in any library) w
 genotyped in every library (0: < 0.10; 1: 0.25-0.75; 2: > 0.90) and libraries compared
 pairwise as the share of shared sites with the same genotype.
 
+**Library depth** (`cpg_depth_summary.py`). Per library, the CpGs on chr1-22 and chrX with
+>= 5 informative reads (the depth every methylation analysis requires of a CpG) and
+their mean methylation.
+
 **Driver mutations** (`06_vaf_pileup.sh`, `04_integration/13_vaf_from_taps_reads.R`).
 Base counts over the coding exons (+/- 10 bp) of 85 myeloid and clonal-haematopoiesis
 driver genes (samtools mpileup, MAPQ >= 10, base quality >= 20), read 1 and read 2
@@ -173,7 +177,7 @@ moves it the same way at raw p < 0.10.
   of the 8 files. For each DMR in an anchor: the partner's genes, any DMR there, and the
   most significant change metilene tested inside it.
 - **Locus plots.** Gene models (overlapping genes on separate lanes) and CpG islands, each
-  CpG linked to a column of a per-sample heatmap (every CpG with >= 1 read in any library),
+  CpG linked to a column of a per-sample heatmap (every CpG with >= 2 reads in any library),
   the DMR boxed, the gene's RNA-seq beside it and Hi-C partners below. Window: the DMR
   +/- 1.5 kb, extended to the gene's TSS when it lies within 5 kb.
 
