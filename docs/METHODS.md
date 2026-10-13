@@ -47,6 +47,11 @@ affect. Candidate sites (>= 10 reads, other-base share >= 0.25 in any library) w
 genotyped in every library (0: < 0.10; 1: 0.25-0.75; 2: > 0.90) and libraries compared
 pairwise as the share of shared sites with the same genotype.
 
+**Chimerism** (`04_integration/15_chimerism.R`). At identity SNP sites where the two people
+of the study are opposite homozygotes, reads carrying the allele the donor lacks were counted
+in every library (donor genotype called leave-one-out); the pure donor libraries give the
+error rate, and the recipient share is about twice the excess over it.
+
 **Library depth** (`cpg_depth_summary.py`). Per library, the CpGs on chr1-22 and chrX with
 >= 5 informative reads (the depth every methylation analysis requires of a CpG) and
 their mean methylation.
