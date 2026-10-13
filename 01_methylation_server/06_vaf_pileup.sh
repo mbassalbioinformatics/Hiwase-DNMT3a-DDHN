@@ -28,7 +28,7 @@ OUT=$DMR_OUT
 V="$OUT/vaf"; mkdir -p "$V"
 SAMPLES=()
 while IFS= read -r s; do SAMPLES+=("$s"); done < <(awk -F'\t' 'NR == 1 {for (i = 1; i <= NF; i++) h[$i] = i; next}
-  $h["methylation"] == "analysed" || $h["methylation"] == "extra" {print $h["sample"]}' config/samples.tsv)
+  $h["methylation"] == "analysed" {print $h["sample"]}' config/samples.tsv)
 log() { echo "$(date '+%F %T') $*" | tee -a "$OUT/progress.txt"; }
 for t in samtools python3; do command -v $t >/dev/null || { echo "ERROR: $t not on PATH" >&2; exit 1; }; done
 [[ -s "$BED" && -s "$PARSE" ]] || { echo "ERROR: $BED or $PARSE missing" >&2; exit 1; }

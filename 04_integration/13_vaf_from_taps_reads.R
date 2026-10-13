@@ -63,9 +63,11 @@ KNOWN_SNPS <- data.table(chr = c("chr4", "chr18"), pos = c(105275794L, 44952641L
                                        "rs3744825 (SETBP1 p.Val1101Ile, gnomAD AF ~0.11-0.13, ClinVar benign)"))
 
 # libraries in sample-sheet order (timeline order within each case); person = genome (genotype-confirmed)
-SMP <- fread(SAMPLE_SHEET, colClasses = "character")[methylation %in% c("analysed", "extra"),
-         .(sample, person, label = plot_label, case = fifelse(case == "none", "Not in design", paste(case, "case")))]
+SMP <- fread(SAMPLE_SHEET, colClasses = "character")[methylation == "analysed",
+         .(sample, person, label = plot_label, case = paste(case, "case"))]
 SMP[, order := .I]
+# variants the clinical team has confirmed in these samples (12-13 Oct 2026); the clone figure marks them
+CLINICAL <- c("DNMT3A G543C", "TET2 C1378Y", "SRSF2 P95H")
 CASE_LV  <- unique(SMP$case)
 CASE_COL <- setNames(c("#6A51A3", "#D95F02", "#1B9E77")[seq_along(CASE_LV)], CASE_LV)
 CASE_COL[grepl("^Not in design", CASE_LV)] <- "grey50"
@@ -391,10 +393,12 @@ fwrite(cm[, .(gene, chr, pos, ref, alt, protein, consequence, known_snp, class, 
 if (nrow(cm)) {
   cm[, lab := factor(axis_label, levels = SMP$axis_label)]
   cm[, case := factor(case, levels = CASE_LV)]
-  cm[, var := sprintf("%s %s: %s\n%s:%s %s>%s%s", gene, fifelse(is.na(aa_short), consequence, aa_short),
+  cm[, var := sprintf("%s %s: %s%s\n%s:%s %s>%s%s", gene, fifelse(is.na(aa_short), consequence, aa_short),
                       fcase(class == "acquired candidate", "acquired",
                             class == "allelic imbalance at a germline SNP", "germline SNP, allelic imbalance",
+                            paste(gene, aa_short) %in% CLINICAL, "in one sample",
                             default = "candidate, one sample"),
+                      fifelse(paste(gene, aa_short) %in% CLINICAL, " (clinically confirmed)", ""),
                       chr, formatC(pos, big.mark = ",", format = "d"), ref, alt,
                       fifelse(is.na(known_snp), "", paste0(" (", sub(" .*", "", known_snp), ")")))]
   ord <- unique(cm[order(match(class, c("acquired candidate", "candidate: one sample, both strands", "allelic imbalance at a germline SNP")),

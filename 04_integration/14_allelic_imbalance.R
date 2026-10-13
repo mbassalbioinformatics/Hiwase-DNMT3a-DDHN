@@ -27,7 +27,7 @@ OUT <- file.path(INT, "vaf"); dir.create(OUT, showWarnings = FALSE)
 MIN_STRAND <- 6L; MIN_POOLED <- 12L; BIN <- 10e6; EXCESS <- 0.10; ZMIN <- 4
 
 .sheet <- fread(SAMPLE_SHEET, colClasses = "character")
-SMP <- .sheet[methylation %in% c("analysed", "extra"), .(sample, person, label = plot_label)]
+SMP <- .sheet[methylation == "analysed", .(sample, person, label = plot_label)]
 CHR <- paste0("chr", c(1:22, "X"))
 # the TET2 case's two libraries: the flank check and the chr4/chr18 figure
 TET2_CASE <- .sheet[methylation == "analysed" & case == unique(.sheet[methylation == "analysed", case])[2], sample]   # the second case

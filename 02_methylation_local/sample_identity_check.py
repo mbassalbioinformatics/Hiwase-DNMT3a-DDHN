@@ -23,7 +23,7 @@
 #
 # USAGE  python3 02_methylation_local/sample_identity_check.py <emseq_dir> <out_dir> [sample_sheet]
 #        (<emseq_dir> holds <sample>_msuite2/Msuite2.CpG.meth.call.xz; the libraries
-#        are those marked analysed or extra in the sample sheet, default
+#        are those marked analysed in the sample sheet, default
 #        config/samples.tsv)
 # Output in <out_dir>: <sample>.json (pass 1 summary), union_sites.txt,
 #        <sample>.union_counts.tsv, identity_concordance.tsv (pairwise)
@@ -81,7 +81,7 @@ def genotype(allr, oth):
 if __name__ == "__main__":
     emseq, out = sys.argv[1], sys.argv[2]
     sheet = sys.argv[3] if len(sys.argv) > 3 else "config/samples.tsv"
-    SAMPLES = [r["sample"] for r in csv.DictReader(open(sheet), delimiter="\t") if r["methylation"] in ("analysed", "extra")]
+    SAMPLES = [r["sample"] for r in csv.DictReader(open(sheet), delimiter="\t") if r["methylation"] == "analysed"]
     os.makedirs(out, exist_ok=True)
     with Pool(len(SAMPLES)) as p:
         cands = p.map(pass1, [(s, emseq, out) for s in SAMPLES])

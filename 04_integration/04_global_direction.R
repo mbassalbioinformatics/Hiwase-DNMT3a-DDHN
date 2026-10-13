@@ -135,9 +135,8 @@ mg[, `:=`(ps = fifelse(strand == "+", tss - 1500L, tss - 500L), pe = fifelse(str
 cg <- copy(cgi); setnames(cg, c("start", "end"), c("s", "e")); setkey(cg, chr, s, e)
 cgp <- unique(foverlaps(mg[, .(gene, chr, s = ps, e = pe)], cg, by.x = c("chr", "s", "e"), nomatch = 0L)$gene)
 x <- merge(pm, mg[, .(id = gene, chr)], by = "id")[id %in% cgp]
-extra <- fread(SAMPLE_SHEET, colClasses = "character")[methylation == "extra", sample]
-smp8 <- intersect(c(smp, extra), names(x))
-xc <- rbindlist(lapply(smp8, function(s0) data.table(sample = s0,
+smp7 <- intersect(smp, names(x))
+xc <- rbindlist(lapply(smp7, function(s0) data.table(sample = s0,
   chrX_median = median(x[chr == "chrX"][[s0]], na.rm = TRUE),
   chrX_frac_0.3_0.7 = mean(between(x[chr == "chrX"][[s0]], 0.3, 0.7), na.rm = TRUE),
   autosome_median = median(x[chr != "chrX"][[s0]], na.rm = TRUE), n_chrX = sum(!is.na(x[chr == "chrX"][[s0]])))))

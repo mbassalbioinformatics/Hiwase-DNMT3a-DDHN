@@ -6,5 +6,4 @@ RECIP_DX	DX	CASE1	A	ULN_5	analysed	yes	DDHN	DDHN	Recipient, DDHN diagnosis	YYYY-
 DONOR_T1	D23	CASE1	A	ULN_6	analysed	yes	Donor, later	Donor later	Donor, later sample	YYYY-MM-DD		PBMNC	GENE	NN		final	donor	Donor	Donor	no	present	VAF NN%	#CBB8E0	measured	Donor	#55A868	
 CASE2_A	T2A	CASE2	B	ULN_1	analysed	no	Case 2: sample A*	Case 2: A*	To be confirmed	YYYY-MM-DD		material	GENE		to be confirmed	provisional											
 CASE2_DX	T2DX	CASE2	B	ULN_2	analysed	no	Case 2: DDHN	Case 2: DDHN	Recipient, DDHN diagnosis	YYYY-MM-DD		material	GENE	NN		provisional											
-EXTRA	X	none	C	ULN_8	extra	no	Extra	Extra	Not in the design							excluded											
 NEG	NEG	none		ULN_9	control	no			Negative control							excluded											

@@ -14,7 +14,7 @@
 #
 # USAGE  python3 02_methylation_local/allele_balance_counts.py <emseq_dir> <identity_dir> [sample_sheet]
 #        (<identity_dir> is the output folder of sample_identity_check.py; the libraries
-#        are those marked analysed or extra in the sample sheet, default config/samples.tsv)
+#        are those marked analysed in the sample sheet, default config/samples.tsv)
 # Output in <identity_dir>: <sample>.strand_counts.tsv
 #        chr  pos  w_ct  w_other  c_ct  c_other   (pos = CpG C, 1-based; the
 #        Crick counts belong to pos + 1)
@@ -43,7 +43,7 @@ def run(job):
 if __name__ == "__main__":
     emseq, out = sys.argv[1], sys.argv[2]
     sheet = sys.argv[3] if len(sys.argv) > 3 else "config/samples.tsv"
-    SAMPLES = [r["sample"] for r in csv.DictReader(open(sheet), delimiter="\t") if r["methylation"] in ("analysed", "extra")]
+    SAMPLES = [r["sample"] for r in csv.DictReader(open(sheet), delimiter="\t") if r["methylation"] == "analysed"]
     union = set(l.strip() for l in open(os.path.join(out, "union_sites.txt")) if l.strip())
     with Pool(len(SAMPLES)) as p:
         for s, n in p.map(run, [(s, emseq, out, union) for s in SAMPLES]):

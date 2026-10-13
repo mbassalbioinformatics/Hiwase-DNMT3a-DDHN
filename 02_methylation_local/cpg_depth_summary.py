@@ -8,7 +8,7 @@
 # library table of the reports.
 #
 # USAGE  python3 02_methylation_local/cpg_depth_summary.py <emseq_dir> <identity_dir> [sample_sheet]
-#        (the libraries are those marked analysed or extra in the sample sheet,
+#        (the libraries are those marked analysed in the sample sheet,
 #        default config/samples.tsv)
 # Reads  <emseq_dir>/<sample>_msuite2/Msuite2.CpG.meth.call.xz
 # Output <identity_dir>/cpg_depth_summary.tsv   sample  cpgs_min5  mean_methylation_min5
@@ -43,7 +43,7 @@ def summarise(job):
 if __name__ == "__main__":
     emseq, out = sys.argv[1], sys.argv[2]
     sheet = sys.argv[3] if len(sys.argv) > 3 else "config/samples.tsv"
-    SAMPLES = [r["sample"] for r in csv.DictReader(open(sheet), delimiter="\t") if r["methylation"] in ("analysed", "extra")]
+    SAMPLES = [r["sample"] for r in csv.DictReader(open(sheet), delimiter="\t") if r["methylation"] == "analysed"]
     with Pool(len(SAMPLES)) as pool:
         res = pool.map(summarise, [(s, emseq) for s in SAMPLES])
     with open(os.path.join(out, "cpg_depth_summary.tsv"), "w") as f:

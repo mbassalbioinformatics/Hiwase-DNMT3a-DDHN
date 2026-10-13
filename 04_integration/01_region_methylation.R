@@ -31,7 +31,7 @@ OUT   <- file.path(INT, "region_methylation")
 dir.create(OUT, showWarnings = FALSE, recursive = TRUE)
 
 # every library analysed, in sample-sheet order (timeline order within each case)
-SAMPLES <- fread(SAMPLE_SHEET, colClasses = "character")[methylation %in% c("analysed", "extra"), sample]
+SAMPLES <- fread(SAMPLE_SHEET, colClasses = "character")[methylation == "analysed", sample]
 KEEP    <- paste0("chr", c(1:22, "X"))
 MIN_COV <- 5     # reads for a CpG to count towards the mean
 MIN_CPG <- 3     # CpGs at MIN_COV for a region to get a value
