@@ -186,7 +186,80 @@ moves it the same way at raw p < 0.10.
   the DMR boxed, the gene's RNA-seq beside it and Hi-C partners below. Window: the DMR
   +/- 1.5 kb, extended to the gene's TSS when it lies within 5 kb.
 
-## 6. References
+## 6. Genome-wide variants from the TAPS reads
+
+Run on the server with `05_variants_server/` (GATK 4.6.2.0 in Docker; `run_variants.sh`
+runs steps 02-05) and analysed in `04_integration/16_genomewide_cnv.R` and
+`17_genomewide_snvs.R`. Library roles come from `config/samples.tsv` (`variant_role`,
+`cnv_panel`, `clone_library`, `donor_clone`).
+
+**Masked alignments** (`02_prepare_bams.sh`, `taps_mask_methylation.py`). At a reference
+CpG the C is read by the original top strand and the G by the original bottom strand; in
+TAPS these bases report methylation, not genotype, and would look like C>T / G>A variants
+everywhere. In the Msuite2 alignments they were set to N with base quality 0, so the
+callers take the genotype at a CpG from the other strand; secondary and supplementary
+alignments were dropped and duplicates marked (GATK MarkDuplicates). Msuite2's aligner
+gives a mapping quality of at most 42, below several GATK defaults (20-50), so every
+step used mapping quality >= 10.
+
+**Point mutations** (`03_somatic_calls.sh`, `05_annotate_collect.sh`;
+`04_integration/17_extract_calls.py`, `17_genomewide_snvs.R`). Mutect2, one multi-sample
+run per case in 25-Mb chunks: the libraries with little or none of the clone as normals
+(in the DNMT3A case the donation sample and day 30, so that differences of material
+between the progenitor-cell graft and mononuclear cells cancel), the person's other
+libraries as tumours; 1000 Genomes panel of normals and gnomAD germline resource;
+read-orientation model (LearnReadOrientationModel); contamination of each library
+against the case's first normal (GetPileupSummaries, CalculateContamination);
+FilterMutectCalls. TAPS also converts about 0.2% of unmethylated C outside CpGs, on one
+strand only, so the PASS calls were filtered further: (1) strand rule: a C>T needs >= 2
+alt reads in F2R1 orientation (original bottom strand) and a G>A >= 2 in F1R2, in a
+library with >= 2 alt reads; other changes need >= 2 alt reads; (2) a dinucleotide change
+with >= 90% of its alt reads in one orientation is removed; (3) gnomAD allele frequency
+> 0.1% (POPAF < 3) is removed; (4) calls outside uniquely mappable sequence (Umap k100)
+or inside segmental duplications are removed. Calls were annotated with Funcotator
+(GENCODE 43; data sources v1.8). A call is clonal when it has >= 2 alt reads and
+VAF >= 0.25 in every library in which the clone is large (`clone_library`) and is not
+seen in the other person.
+
+**Pooled clone test** (`06_site_counts.sh`, `taps_site_counts.py`, `17_genomewide_snvs.R`).
+Whether a clone's mutations were already present in earlier samples, at a level no
+single site can show, was tested by pooling sites: SNVs with >= 3 alt reads, VAF >= 0.25
+and alt reads on the informative strand in every clone library, gnomAD AF <= 0.1%,
+median alt mapping quality >= 40 and VAF < 0.2 in every normal library; FILTER PASS,
+normal_artifact or contamination (FilterMutectCalls marks a call normal_artifact when a
+normal has alt reads, so PASS alone would hide the mutations sought). Reads at these
+sites were counted in every library by orientation (base quality >= 20, mapping quality
+>= 10, duplicates skipped, overlapping mates counted once), on the informative strand
+for C>T and G>A. The other person's libraries, which cannot carry these mutations, give
+the error background; sites with >= 2 alt reads there were removed as systematic
+artefacts. In the DNMT3A case the clone's mutations were also split by the donor's later
+blood (`donor_clone`): seen there (>= 2 alt reads; shared with the donor's own clone) or
+not (0 alt reads of >= 15; branch-only), and by presence in one clone library but not
+the other (0 alt reads of >= 10). Per library: alt reads / depth summed over the sites,
+with an exact binomial 95% interval; for heterozygous mutations the share of cells is
+about twice the share of reads.
+
+**Copy number and allelic balance** (`04_cnv_loh.sh`, `taps_snp_sites.py`,
+`04_integration/16_genomewide_cnv.R`). GATK somatic copy-number workflow: read counts in
+1-kb bins, kept when mappable (Umap k100 >= 0.9), with segmental-duplication content
+<= 0.5 and GC 0.1-0.9 (FilterIntervals); denoised against a panel of normals
+(`cnv_panel`; each panel library against the others); allelic counts (base quality
+>= 20, so the masked bases are ignored) at common gnomAD SNPs (AF 0.1-0.9) without SNPs
+whose alternative allele creates a CpG (TAPS reads that allele's methylated C as T on one
+strand); ModelSegments with the heterozygous sites of the person's first normal library;
+CallCopyRatioSegments. A called gain or loss is inherited (or technical) when a normal
+library of the same person departs from copy ratio 1 in the same direction by at least
+half as much (mean copy ratio of the segment's bins, not of log2 values, since a bin
+without reads has log2 near -30), and acquired otherwise; calls starting on the short arm
+of an acrocentric chromosome are not interpreted. Allelic imbalance per library: mean
+|BAF - 0.5| at heterozygous sites against its exact binomial expectation at the same
+depths, and segments with >= 20 heterozygous sites and minor-allele fraction < 0.40,
+compared with the person's normal libraries. For the gain inside KMT2A, the stretch called
+in every clone library was measured in every library (mean log2 copy ratio of its bins,
+95% interval) against 60 kb of flanking bins, and its exons taken from the MANE Select
+transcript.
+
+## 7. References
 
 - Liu Y et al. Bisulfite-free direct detection of 5-methylcytosine and 5-hydroxymethylcytosine at base resolution. *Nat Biotechnol* 2019;37:424-9.
 - Li L et al. Msuite2: all-in-one DNA methylation data analysis toolkit. *Comput Struct Biotechnol J* 2022;20:1271-6.
@@ -203,3 +276,8 @@ moves it the same way at raw p < 0.10.
 - Brenet F et al. DNA methylation of the first exon is tightly linked to transcriptional silencing. *PLoS One* 2011;6:e14524.
 - Anastasiadi D et al. Consistent inverse correlation between DNA methylation of the first intron and gene expression. *Epigenetics Chromatin* 2018;11:37.
 - Subramanian S et al. Genome-wide transcription factor-binding maps reveal cell-specific changes in the regulatory architecture of human HSPCs. *Blood* 2023;142:1448-62. (GEO GSE231486)
+- McKenna A et al. The Genome Analysis Toolkit: a MapReduce framework for analyzing next-generation DNA sequencing data. *Genome Res* 2010;20:1297-303.
+- Cibulskis K et al. Sensitive detection of somatic point mutations in impure and heterogeneous cancer samples. *Nat Biotechnol* 2013;31:213-9.
+- Benjamin D et al. Calling somatic SNVs and indels with Mutect2. *bioRxiv* 2019; doi:10.1101/861054.
+- Karczewski KJ et al. The mutational constraint spectrum quantified from variation in 141,456 humans (gnomAD). *Nature* 2020;581:434-43.
+- Karimzadeh M et al. Umap and Bismap: quantifying genome and methylome mappability. *Nucleic Acids Res* 2018;46:e120.

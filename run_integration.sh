@@ -3,7 +3,8 @@
 # run_integration.sh
 # Runs the methylation x RNA-seq integration (04_integration/) in order, from
 # the repository root. Needs config/paths.R and the config tables, the Msuite2
-# per-CpG files and DMR results copied from the server, and the RNA-seq results.
+# per-CpG files and DMR results copied from the server, the RNA-seq results and,
+# for 16-17, the genome-wide variant output (emseq/04_variants/, 05_variants_server/).
 #   bash run_integration.sh            every step
 #   bash run_integration.sh 06 10      only the listed steps
 # The locus-plot galleries (05, 10) are the slow part (~20 min).
@@ -13,7 +14,7 @@ set -uo pipefail
 cd "$(dirname "$0")"
 STEPS=(01_region_methylation 02_tf_activity 03_promoter_meth_vs_expression 04_global_direction
        07_gene_panels 06_dmr_master 08_dmr_plots 09_hic_loops 11_homer_summary
-       13_vaf_from_taps_reads 14_allelic_imbalance 15_chimerism
+       13_vaf_from_taps_reads 14_allelic_imbalance 15_chimerism 16_genomewide_cnv 17_genomewide_snvs
        05_locus_plot_gallery 10_dmr_locus_gallery)
 LOG=integration_run.log
 want=("$@")

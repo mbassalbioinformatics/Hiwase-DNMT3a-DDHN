@@ -23,7 +23,7 @@
 #
 # One contig per call, so a sample runs as many processes in parallel. The
 # output header lists the contigs of the GATK reference dictionary in its order
-# (the chipap hg38 dictionary is in lexical order) and one read group named after
+# (some hg38 dictionaries are in lexical order) and one read group named after
 # the sample. Secondary and supplementary alignments are dropped; a read whose
 # mate lies on a contig outside the dictionary keeps its alignment and its mate
 # is marked unmapped.
@@ -34,7 +34,7 @@ import sys
 import numpy as np
 import pysam
 
-MASK_VERSION = "2"   # in the @PG header line; 09 rebuilds BAMs masked by an older version (1 = quality 0 only)
+MASK_VERSION = "2"   # in the @PG header line; 02_prepare_bams.sh rebuilds BAMs masked by an older version (1 = quality 0 only)
 
 
 def dict_contigs(path):

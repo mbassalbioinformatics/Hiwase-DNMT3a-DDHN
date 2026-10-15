@@ -53,3 +53,6 @@ Recorded with `bash 01_methylation_server/00_tool_versions.sh` (PATH and every c
 | STAR | 2.7.10b | RNA-seq alignment |
 | Python | 3.9.18 | |
 | R | 4.6.1 | |
+| GATK | 4.6.2.0 | Docker image `broadinstitute/gatk`; Mutect2, somatic CNV workflow, Funcotator (`05_variants_server/`) |
+| Funcotator data sources | v1.8, hg38, 2023-09-08 (somatic) | |
+| pysam, bcftools | as in the GATK 4.6.2.0 image | methylation masking, SNP-site filter, mappability flags, site counts |

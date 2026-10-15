@@ -4,8 +4,9 @@
 #
 # Point mutations and small insertions/deletions across the whole genome, from
 # the Mutect2 run on the TAPS reads (05_variants_server/03_somatic_calls.sh, one run
-# per person; DNMT3A case: normals = donor at donation and day 30, tumours =
-# 3.5 yr, DDHN and donor 2023; TET2 case: normal = 12 months, tumour = DDHN).
+# per person, roles from config/samples.tsv, column variant_role; DNMT3A case:
+# normals = donor at donation and day 30, tumours = 3.5 yr, DDHN and donor 2023;
+# TET2 case: normal = the earlier sample, tumour = DDHN).
 #
 # FilterMutectCalls assumes ordinary DNA. TAPS adds one-strand C>T / G>A changes
 # (unmethylated C converted at about 0.2%), so the PASS calls are filtered further:
@@ -28,12 +29,12 @@
 #            the donor's own clone) or not seen there (0 alt reads of >= 15)
 #   background  the other person's libraries at the same sites, from
 #            05_variants_server/06_site_counts.sh (emseq/04_variants/site_counts/) when it has run;
-#            until then the TET2 case's 12-month library at its own clone sites
+#            until then the TET2 case's earlier sample at its own clone sites
 #
 # Input   integration/variants/calls_<case>.tsv.gz (17_extract_calls.py, run from
 #         here when missing or older than the VCFs in emseq/04_variants/vcf/)
 # Output  integration/variants/: funnel.tsv, calls_final.tsv.gz, carriers.tsv,
-#         vaf_summary.tsv, clonal_counts.tsv, coding.tsv, pooled.tsv, pooled_sites_other_person.tsv, site_counts_sites.tsv (for JE),
+#         vaf_summary.tsv, clonal_counts.tsv, coding.tsv, pooled.tsv, pooled_sites_other_person.tsv, site_counts_sites.tsv (for the server),
 #         snv_vaf.png, snv_pooled.png
 ###############################################################################
 suppressPackageStartupMessages({ library(data.table); library(ggplot2); library(patchwork) })

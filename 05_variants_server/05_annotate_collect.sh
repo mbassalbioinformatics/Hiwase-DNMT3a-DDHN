@@ -26,7 +26,7 @@ MAPF="$HERE/taps_annotate_mappability.py"
 [[ "${1:-}" == "--test" ]] && OUT="$OUT/test_${2:?--test needs a contig}"
 V="$OUT/mutect2/vcf"; X="$OUT/transfer"; mkdir -p "$X"/{vcf,cnv,logs/mutect2}
 exec 9> "$OUT/.lock.05"; flock -n 9 || { echo "ERROR: 05 is already running on $OUT"; exit 3; }
-rm -f "$OUT/.done.05"     # written again only when both cases are annotated
+rm -f "$OUT/.done.05"     # written again only when every case is annotated
 DOCKER="docker run --platform linux/amd64 --rm $DOCKER_MOUNTS $GATK_IMAGE"
 GATK="$DOCKER gatk --java-options -Xmx16g"
 FUNCO_DIR=${FUNCO_DIR:-$FUNCOTATOR_DIR}
@@ -40,7 +40,7 @@ fresh() {  # fresh <output> <input...>: the output exists and is newer than ever
 }
 FAILED=()
 
-for c in DNMT3A TET2; do
+for c in "${CASES[@]}"; do
   f="$V/$c.filtered.vcf.gz"; [[ -s "$f" ]] || { echo "FAIL $c: no $f (run 03)"; FAILED+=("$c"); continue; }
   pass="$X/vcf/$c.pass.vcf.gz"; mapd="$X/vcf/$c.pass.mappability.vcf.gz"; fun="$X/vcf/$c.funcotated.vcf.gz"
   fresh "$pass" "$f" || { rm -f "$pass"*; $DOCKER bash -c "bcftools view -f PASS -Oz -o $pass $f && bcftools index -t $pass" \

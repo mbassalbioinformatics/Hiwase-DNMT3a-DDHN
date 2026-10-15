@@ -95,7 +95,7 @@ for s in "${ALL[@]}"; do pool
 done; wait
 need "read counts" $(for s in "${ALL[@]}"; do echo "$C/counts/$s.counts.hdf5"; done)
 
-# 3. panels of normals: all four normals, and leave-one-out for each of them
+# 3. panels of normals: every library of the panel, and leave-one-out for each of them
 pon_args() { local skip="$1" a=(); for n in "${NORMALS[@]}"; do [[ "$n" == "$skip" ]] || a+=(-I "$C/counts/$n.counts.hdf5"); done; echo "${a[@]}"; }
 pon_deps() { local skip="$1" a=("$ANN"); for n in "${NORMALS[@]}"; do [[ "$n" == "$skip" ]] || a+=("$C/counts/$n.counts.hdf5"); done; echo "${a[@]}"; }
 run pon.all "$C/pon/pon.all.hdf5" "$(pon_deps none)" $GATK CreateReadCountPanelOfNormals $(pon_args none) \

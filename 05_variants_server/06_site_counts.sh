@@ -28,7 +28,7 @@ if python3 -c "import pysam" 2>/dev/null; then PY="python3"; else PY="$DOCKER py
 for f in "$SITES" "$PYF"; do [[ -s "$f" ]] || { echo "ERROR: missing $f"; exit 1; }; done
 args=()
 for s in "${SAMPLES[@]}"; do
-  b="$OUT/bams/$s.taps.bam"; [[ -s "$b" ]] || { echo "ERROR: missing $b (run 09)"; exit 1; }
+  b="$OUT/bams/$s.taps.bam"; [[ -s "$b" ]] || { echo "ERROR: missing $b (run 02)"; exit 1; }
   args+=("$s=$b")
 done
 cp -p "$SITES" "$D/sites.tsv"

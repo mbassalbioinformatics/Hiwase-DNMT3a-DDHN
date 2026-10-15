@@ -6,15 +6,15 @@
 # masked BAMs from 02, one multi-sample run per case.
 #
 # Design (config/samples.tsv, column variant_role): in each case the libraries
-# without the clone are the normals (the first one listed is the baseline), and
-# the other libraries of the same person are the tumours, called jointly so that
-# the clone's variants are followed across the timeline. The 1000 Genomes panel
-# of normals and gnomAD filter artefacts and germline variants.
+# with little or none of the clone are the normals (the first one listed is the
+# baseline), and the other libraries of the same person are the tumours, called
+# jointly so that the clone's variants are followed across the timeline. The
+# 1000 Genomes panel of normals and gnomAD filter artefacts and germline variants.
 # A second normal of the same material as the tumours is worth having: with the
 # donor's graft (progenitor cells collected from blood) as the only normal,
 # hundreds of calls per chromosome that every marrow or blood mononuclear-cell
 # library shared at ~20% were differences of material, not of clone; a day-30
-# marrow without the clone cancels them.
+# marrow with little of the clone cancels them.
 # Contamination of every library other than the baseline is measured against
 # the baseline (another person's DNA; after a transplant, the recipient's).
 #
@@ -58,7 +58,7 @@ if [[ "${1:-}" == "--test" ]]; then TEST="${2:?--test needs a contig, e.g. chr21
 BAMS="$OUT/bams"; M="$OUT/mutect2"; SHARD="$M/shards"; VCF="$M/vcf"; LOG="$M/logs"
 mkdir -p "$SHARD" "$VCF" "$LOG"
 exec 9> "$OUT/.lock.03"; flock -n 9 || { echo "ERROR: 03 is already running on $OUT"; exit 3; }
-rm -f "$OUT/.done.03"     # written again only when both cases are filtered
+rm -f "$OUT/.done.03"     # written again only when every case is filtered
 DOCKER="docker run --platform linux/amd64 --rm $DOCKER_MOUNTS $GATK_IMAGE"
 GATK="$DOCKER gatk --java-options $JAVA_MEM"
 for f in "$REF" "$DICT" "$PON" "$GNOMAD" "$COMMON"; do

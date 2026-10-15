@@ -7,11 +7,11 @@
 #   copy ratio      reads per 1-kb bin (mapping quality >= 10); bins kept when
 #                   mappable (Umap k100 >= 0.9), outside segmental duplications
 #                   (<= 0.5) and of ordinary GC (0.1-0.9); each library denoised
-#                   against a panel of the four normal libraries (a normal
-#                   against the other three)
+#                   against the panel of normal libraries (config/samples.tsv,
+#                   column cnv_panel; a normal against the others)
 #   allele balance  common SNPs (gnomAD AF 0.1-0.9; SNPs whose alternative allele
 #                   creates a CpG left out); heterozygous sites from the person's
-#                   first library (donation, or 12 months in the TET2 case)
+#                   first normal library (config/samples.tsv, column variant_role)
 #   segments        GATK ModelSegments; gains and losses from CallCopyRatioSegments
 # Here: a summary per library; every called gain or loss, classified by whether
 # the person's own normal library shows it too (inherited) or not (acquired);

@@ -8,8 +8,8 @@ lacks: an alternative C before a reference G, or an alternative G after a
 reference C. On that allele the new CpG is methylated like any other, and TAPS
 reads its methylated C as T on one strand, so the alternative allele would be
 under-counted and the allele fraction biased. Reference CpG sites are kept:
-09 masks their methylation-reporting bases (base quality 0) and the other
-strand reads the genotype.
+02_prepare_bams.sh masks their methylation-reporting bases (base quality 0)
+and the other strand reads the genotype.
 """
 import sys
 

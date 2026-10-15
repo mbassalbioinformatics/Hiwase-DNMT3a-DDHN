@@ -6,7 +6,7 @@ never commit them.
 
 | Local file | Template | Used by |
 |---|---|---|
-| `paths.sh` | `paths.example.sh` | server scripts (`01_methylation_server/`, `03_rnaseq/server/`) |
+| `paths.sh` | `paths.example.sh` | server scripts (`01_methylation_server/`, `03_rnaseq/server/`, `05_variants_server/`) |
 | `paths.R` | `paths.example.R` | every R script |
 | `samples.tsv` | `samples.example.tsv` | everything that needs the sample list |
 | `comparisons.tsv` | `comparisons.example.tsv` | DMR calling and the integration |
@@ -30,6 +30,19 @@ One row per sequenced library, tab-separated, every column read as text.
 | `material` | e.g. BMNC, PBMNC |
 | `vaf_gene`, `vaf_pct`, `vaf_note` | clone VAF from clinical testing, or why there is none |
 | `subject`, `tp_label`, `short`, `disease`, `clone`, `clone_ann`, `clone_colour`, `vaf_source`, `rna_label`, `rna_colour` | RNA-seq sample annotation and colours |
+| `variant_role` | Mutect2 role in its case (`05_variants_server/03_somatic_calls.sh`): `normal` for the libraries with little or none of the clone (the first normal of a case is the baseline for contamination; the first normal of a person gives the heterozygous SNPs for copy-number segmentation), `tumour` for the others; empty for libraries not called |
+| `cnv_panel` | `yes` for the libraries in the copy-number panel of normals (`05_variants_server/04_cnv_loh.sh`); each of them is denoised against the others |
+| `clone_library` | `yes` for the libraries in which the DDHN clone is large: a mutation is clonal when it is in all of them (`04_integration/17_genomewide_snvs.R`) |
+| `donor_clone` | `yes` for the donor library that carries the donor's own clone; it splits the clone's mutations into shared and branch-only |
+
+## paths.sh
+
+Folders and files on the server, one variable per line, with a comment in
+`paths.example.sh` for each. The genome-wide variant steps (`05_variants_server/`)
+also need the reference FASTA the reads were aligned to (with `.fai` and a GATK
+`.dict`), the GATK Docker image, the GATK somatic resources (panel of normals,
+gnomAD, common SNPs), 1-kb bins, mappability and segmental-duplication tracks, and
+the Funcotator data sources.
 
 ## comparisons.tsv
 
