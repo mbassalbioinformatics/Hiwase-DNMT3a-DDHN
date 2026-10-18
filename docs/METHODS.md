@@ -5,20 +5,22 @@
 Two cases of donor-cell-derived haematological neoplasm (DDHN) after allogeneic
 haematopoietic stem cell transplantation.
 
-- **Case 1 (DNMT3A).** Recipient bone marrow at day 30 after transplant, at 3.5 years
-  and at DDHN diagnosis, and donor samples at donation and later. TAPS methylation
-  for all five; RNA-seq for day 30, 3.5 years, DDHN and the later donor sample.
+- **Case 1 (DNMT3A).** Recipient bone marrow at 1 month after transplant, at 3.5 years
+  and at DDHN diagnosis, and donor samples at donation and 5 years after donation. TAPS
+  methylation for all five; RNA-seq for the recipient at 1 month, 3.5 years and DDHN
+  diagnosis and the donor 5 years after donation.
 - **Case 2 (TET2).** Two samples sharing one genome, the DDHN and an earlier sample.
   TAPS methylation only.
 
-Between day 30 and 3.5 years the clone expands with no disease ("clonal
+Between 1 month and 3.5 years the clone expands with no disease ("clonal
 establishment"); between 3.5 years and diagnosis clone size is flat while disease
 appears ("transformation"). The two axes are analysed separately. Comparisons are
 pairwise and named `first_vs_second`; every difference is first minus second.
 
 With one library per timepoint there are no replicates. p-values and FDRs therefore
 rank features; confidence comes from agreement between independent comparisons, from
-a **reference comparison** (day 30 against the donor: no disease and a small clone at
+a **reference comparison** (the recipient at 1 month against the donor 5 years after
+donation: no disease and a small clone at
 both ends, so it measures tissue and engraftment effects) and from recurrence in the
 second case.
 
@@ -205,7 +207,7 @@ step used mapping quality >= 10.
 **Point mutations** (`03_somatic_calls.sh`, `05_annotate_collect.sh`;
 `04_integration/17_extract_calls.py`, `17_genomewide_snvs.R`). Mutect2, one multi-sample
 run per case in 25-Mb chunks: the libraries with little or none of the clone as normals
-(in the DNMT3A case the donation sample and day 30, so that differences of material
+(in the DNMT3A case the donation sample and the recipient at 1 month, so that differences of material
 between the progenitor-cell graft and mononuclear cells cancel), the person's other
 libraries as tumours; 1000 Genomes panel of normals and gnomAD germline resource;
 read-orientation model (LearnReadOrientationModel); contamination of each library

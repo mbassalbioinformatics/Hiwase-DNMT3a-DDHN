@@ -108,5 +108,5 @@ Every script is run from the repository root.
 - Methylation is TAPS: a methylated C is read as T. Methylation is the share of T among
   C and T calls at a CpG, both strands combined.
 - With one library per timepoint, p-values and FDRs rank features; confidence comes from
-  agreement between independent comparisons, a reference comparison (day 30 against the
-  donor) and recurrence in the second case. See [docs/METHODS.md](docs/METHODS.md).
+  agreement between independent comparisons, a reference comparison (the recipient at
+  1 month against the donor 5 years after donation) and recurrence in the second case. See [docs/METHODS.md](docs/METHODS.md).
