@@ -88,8 +88,9 @@ tl <- rbind(
   mk("DNMT3A: the donor's clone (oldest mutations)", "DNMT3A_clone_in_donor", DN),
   mk("TET2: the DDHN clone", "TET2_clone", c(ID[["T2A"]], ID[["T2DX"]])))
 tl[, source := "genome-wide mutations, pooled"]
-# clinical VAFs (x 2 = % of cells): the donor's own clone in 2023 cannot be measured from the pooled
-# sites (they were chosen by its reads there), so it is taken from the clinical VAF
+# clinical VAFs (x 2 = % of cells). The donor's own clone is measured by the clinical VAF at both donor samples:
+# its pooled sites were chosen by their reads in the later one, and in the graft they read lower than the
+# DNMT3A mutation itself (the set may cover only part of the donor's clone)
 cv <- smp[nzchar(vaf_pct), .(sample, years, pct = sapply(sample, clin),
                               clone = fifelse(case == "TET2", "TET2: clinical VAF x 2", "DNMT3A: clinical VAF x 2"))]
 tl <- rbind(tl, cv[, .(clone, sample, years, pct, lo = NA_real_, hi = NA_real_, source = "clinical VAF")], fill = TRUE)
@@ -106,13 +107,12 @@ grow <- function(what, a, b, f1, f1lo, f1hi, f2) {
              years = y, pct_from = f1, pct_to = f2, rate = s,
              rate_lo = log(odds(f2) / odds(f1hi)) / y, rate_hi = log(odds(f2) / odds(f1lo)) / y)
 }
-g_br <- tl[clone == "DNMT3A: the DDHN branch"]; g_tr <- tl[clone == "DNMT3A: the donor's clone (oldest mutations)"]
+g_br <- tl[clone == "DNMT3A: the DDHN branch"]
 g_t2 <- tl[clone == "TET2: the DDHN clone"]
 gr <- rbind(
   grow("DNMT3A DDHN branch, in the patient", ID[["D30"]], ID[["Y35"]], g_br[sample == ID[["D30"]], pct], g_br[sample == ID[["D30"]], lo],
        g_br[sample == ID[["D30"]], hi], g_br[sample == ID[["Y35"]], pct]),
-  grow("DNMT3A clone, in the donor", ID[["D18"]], ID[["D23"]], g_tr[sample == ID[["D18"]], pct], g_tr[sample == ID[["D18"]], lo],
-       g_tr[sample == ID[["D18"]], hi], clin(ID[["D23"]])),
+  grow("DNMT3A clone, in the donor", ID[["D18"]], ID[["D23"]], clin(ID[["D18"]]), NA_real_, NA_real_, clin(ID[["D23"]])),
   grow("TET2 DDHN clone, in the patient", ID[["T2A"]], ID[["T2DX"]], g_t2[sample == ID[["T2A"]], pct], g_t2[sample == ID[["T2A"]], lo],
        g_t2[sample == ID[["T2A"]], hi], g_t2[sample == ID[["T2DX"]], pct]))
 gr[, `:=`(doubling_years = log(2) / rate, doubling_lo = log(2) / rate_hi, doubling_hi = log(2) / rate_lo,
@@ -232,12 +232,12 @@ print(glance[, .(lab, tiles_lost = round(tiles_lost, 2), tiles_gained = round(ti
 COL <- c("DNMT3A: the DDHN branch" = "#6A51A3", "DNMT3A: the donor's clone (oldest mutations)" = "#B39DDB",
          "TET2: the DDHN clone" = "#D95F02")
 # legend text: each clone with its copy-number status (Section 5: the KMT2A duplication is the only acquired change)
-COL_LAB <- c("DNMT3A: the DDHN branch" = "DNMT3A: the DDHN branch, with the KMT2A duplication",
-             "DNMT3A: the donor's clone (oldest mutations)" = "DNMT3A: the donor's clone (oldest mutations), without it",
+COL_LAB <- c("DNMT3A: the DDHN branch" = "DNMT3A: the DDHN branch (KMT2A duplication detected at 3.5 years and at diagnosis)",
+             "DNMT3A: the donor's clone (oldest mutations)" = "DNMT3A: the donor's clone (dots: its oldest mutations, pooled; crosses: clinical VAF); no KMT2A duplication detected",
              "TET2: the DDHN clone" = "TET2: the DDHN clone, no copy-number change")
 pt <- copy(tl)[, `:=`(y = pct, ylo = lo, yhi = pmin(hi, 100))]
 pt[source == "clinical VAF", clone := fifelse(grepl("TET2", clone), "TET2: the DDHN clone", "DNMT3A: the DDHN branch")]
-pt[source == "clinical VAF" & sample == ID[["D23"]], clone := "DNMT3A: the donor's clone (oldest mutations)"]
+pt[source == "clinical VAF" & sample %in% c(ID[["D18"]], ID[["D23"]]), clone := "DNMT3A: the donor's clone (oldest mutations)"]
 pt[, meas := factor(source, levels = c("genome-wide mutations, pooled", "clinical VAF"),
                     labels = c("genome-wide clone mutations, pooled (2 x VAF, 95% interval)", "clinical VAF x 2"))]
 SHP <- c(16, 4); names(SHP) <- levels(pt$meas)
@@ -273,13 +273,12 @@ p1 <- ggplot(pa[source != "clinical VAF"], aes(years, y, colour = clone)) +
   scale_x_continuous(breaks = seq(0, 25, 5), limits = c(-0.6, 26)) +
   labs(x = "years after the patient's own transplant", y = "share of cells carrying the clone (log scale)",
        title = "A. The two DDHN clones after transplant: a similar start, a very different speed") +
-  guides(colour = guide_legend(order = 1), shape = guide_legend(order = 2)) +
+  guides(colour = guide_legend(order = 1, ncol = 1), shape = guide_legend(order = 2)) +
   theme_bw(base_size = 12) + theme(legend.position = "bottom", legend.box = "vertical", panel.grid.minor = element_blank())
 # panel B: the DNMT3A patient and the donor in detail
 pb <- pt[grepl("^DNMT3A", clone)]
 in_patient <- pb[source != "clinical VAF" & !sample %in% c(ID[["D23"]])]
-donor_line <- rbind(pb[clone == "DNMT3A: the donor's clone (oldest mutations)" & sample == ID[["D18"]] & source != "clinical VAF"],
-                    pb[source == "clinical VAF" & sample == ID[["D23"]]])
+donor_line <- pb[source == "clinical VAF" & sample %in% c(ID[["D18"]], ID[["D23"]])]   # the donor's clone in the donor, clinical VAF
 lab_b <- unique(pb[, .(years, short, name, sample)])[order(years)]
 lab_b[, y := c(0.085, 0.045)[(seq_len(.N) - 1) %% 2 + 1]]
 # each label sits under its sample; the donor 5 years post donation is moved right, clear of the DDHN leader
@@ -298,14 +297,14 @@ p2 <- ggplot(pb, aes(years, y, colour = clone)) +
   # white-backed labels, so the transplant line does not run through the 1-month name
   geom_label(data = lab_b, aes(lx, y, label = short), inherit.aes = FALSE, size = 3, lineheight = 0.9, colour = "grey20",
              fill = "white", border.colour = NA, label.padding = unit(0.08, "lines")) +
-  annotate("text", x = 1.9, y = 0.14, label = "dashed purple line: the donor's own clone, in the donor", size = 3.2, colour = "#8E7CC3") +
+  annotate("text", x = 1.9, y = 0.14, label = "dashed line: the donor's DNMT3A clone in the donor (clinical VAF)", size = 3.2, colour = "#8E7CC3") +
   scale_shape_manual(values = SHP, name = NULL) + scale_colour_manual(values = COL, labels = COL_LAB, name = NULL) +
   scale_y_log10(breaks = c(0.1, 0.3, 1, 3, 10, 30, 100), labels = function(v) paste0(v, "%"), limits = c(0.03, 160)) +
   scale_x_continuous(breaks = seq(-0.5, 5, 0.5), limits = c(-0.9, 5.8)) +
   labs(x = sprintf("years after the patient's transplant (%s); the donor's samples at their own dates",
                  format(HSCT[["DNMT3A"]], "%d %b %Y")), y = "share of cells carrying the clone (log scale)",
        title = "B. DNMT3A patient and donor: the donor's clone, and the branch of it that became the DDHN") +
-  guides(colour = guide_legend(order = 1), shape = guide_legend(order = 2)) +
+  guides(colour = guide_legend(order = 1, ncol = 1), shape = guide_legend(order = 2)) +
   theme_bw(base_size = 12) + theme(legend.position = "bottom", legend.box = "vertical", panel.grid.minor = element_blank())
 ggsave(file.path(OUT, "fig_timeline.png"), p1 / p2 + plot_layout(heights = c(1, 1)), width = 13, height = 14.5, dpi = 170)
 
@@ -425,18 +424,21 @@ ggsave(file.path(OUT, "fig_programs_course.png"),
 ## ---- figure: TET2 vs DNMT3A -----------------------------------------------------------------------------
 # A: growth rates as doubling times
 gplot <- copy(gr)[, who := factor(clone, levels = rev(clone))]
-pa4 <- ggplot(gplot, aes(12 * doubling_years, who, colour = who)) +
+gplot[, flat := doubling_years > 50]          # no measurable growth: written as text, not drawn as a doubling time
+pa4 <- ggplot(gplot[flat == FALSE], aes(12 * doubling_years, who, colour = who)) +
   geom_errorbar(aes(xmin = 12 * doubling_lo, xmax = 12 * doubling_hi), width = 0.2, linewidth = 0.8, orientation = "y") +
   geom_point(size = 4) +
   geom_text(aes(label = fifelse(doubling_years < 1, sprintf("%.1f months", 12 * doubling_years), sprintf("%.1f years", doubling_years))),
             vjust = -1.3, size = 3.6, show.legend = FALSE) +
+  geom_text(data = gplot[flat == TRUE], aes(x = 12, label = sprintf("no measurable growth: %.0f%% of cells at donation, %.0f%% %.1f years later (clinical VAF x 2)",
+                                                                 pct_from, pct_to, years)), size = 3.6, show.legend = FALSE) +
   scale_x_log10(breaks = c(1, 3, 6, 12, 24, 60, 120, 240), labels = c("1 mo", "3 mo", "6 mo", "1 yr", "2 yr", "5 yr", "10 yr", "20 yr")) +
-  scale_colour_manual(values = c("#D95F02", "#B39DDB", "#6A51A3"), guide = "none") +
-  scale_y_discrete(labels = c("DNMT3A DDHN branch, in the patient" = "DNMT3A DDHN branch, in the patient\nwith the KMT2A duplication",
-                              "DNMT3A clone, in the donor" = "DNMT3A clone, in the donor\nwithout the KMT2A duplication",
+  scale_colour_manual(values = setNames(c("#D95F02", "#B39DDB", "#6A51A3"), levels(gplot$who)), guide = "none") +
+  scale_y_discrete(limits = levels(gplot$who), labels = c("DNMT3A DDHN branch, in the patient" = "DNMT3A DDHN branch, in the patient\nKMT2A duplication from 3.5 years",
+                              "DNMT3A clone, in the donor" = "DNMT3A clone, in the donor\nno KMT2A duplication detected",
                               "TET2 DDHN clone, in the patient" = "TET2 DDHN clone, in the patient\nno copy-number change")) +
   labs(x = "time for the clone to double while small (log scale)", y = NULL,
-       title = "A. How fast each clone grew", subtitle = "least average rate between the two samples; bar: 95% interval from the starting size") +
+       title = "A. How fast each clone grew", subtitle = "least average rate between the two samples; bar: 95% interval from the starting size; the donor's clone from the clinical VAF") +
   theme_bw(base_size = 12) + theme(panel.grid.minor = element_blank(), plot.subtitle = element_text(size = 10))
 # B: the programs of the two DDHNs against early post-transplant marrow, methylation
 SEL <- c("PANEL_HOX_MEIS_self_renewal", "PANEL_HSC_stemness", "PANEL_leukaemic_stem_cell", "HAY_BONE_MARROW_CD34_POS_HSC", "PANEL_progenitors",
