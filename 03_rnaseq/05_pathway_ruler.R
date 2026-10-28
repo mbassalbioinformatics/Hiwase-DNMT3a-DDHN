@@ -178,7 +178,7 @@ if (nrow(hm)) {
          title = "Leukaemia-relevant pathways across all contrasts",
          subtitle = str_wrap(paste0(
            "* FDR < 0.05. Blank = raw p > 0.05 in that comparison. The rightmost column is the ",
-           "reference comparison (day 30 vs donor: no disease, small clone at both ends); for the verdict it is ",
+           "reference comparison (recipient 1 month vs donor 5 years post donation: no disease, small clone at both ends); for the verdict it is ",
            "tested at raw p < ", RULER_P, " from the full tables, so a blank there is not by ",
            "itself a pass."), 120)) +
     theme_minimal(base_size = 10) +

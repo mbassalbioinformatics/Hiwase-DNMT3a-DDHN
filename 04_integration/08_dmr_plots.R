@@ -3,9 +3,12 @@
 # 08_dmr_plots.R                                                     2026-10-08
 #
 #   volcano/<comparison>.png  every region metilene tested: methylation change
-#                             (g1 - g2) against -log10 q; q < 0.05 coloured and
-#                             every one named (switch-region gene, else
-#                             [nearest gene])
+#                             (g1 - g2) against -log10 p, the 2D Kolmogorov-Smirnov
+#                             p-value that metilene's q is computed from (q = p x
+#                             the number of tests it ran, Bonferroni; nearly every
+#                             region has q = 1, so a q axis puts them all at 0).
+#                             Dashed line: q = 0.05. DMRs (q < 0.05) coloured and
+#                             every one named (switch-region gene, else [nearest gene])
 #   heatmap_all_dmrs.png      every metilene DMR from any comparison x every
 #                             sample (timeline order), with which comparisons
 #                             called it and its genomic context
@@ -13,6 +16,7 @@
 # Regenerated from the current tables on every run.
 ###############################################################################
 source("config/paths.R")
+
 source("04_integration/io_helpers.R")
 suppressPackageStartupMessages({
   library(data.table); library(ggplot2); library(ggrepel); library(ComplexHeatmap); library(circlize)
@@ -30,24 +34,29 @@ m[, name := fifelse(!is.na(switch_gene), switch_gene, paste0("[", nearest_gene, 
 set.seed(1)
 for (k in seq_len(nrow(comp))) {
   id <- comp$id[k]
-  x <- fread_metilene(DMRD, id, header = FALSE, select = c(1:5),
-             col.names = c("chr", "start", "end", "q", "delta"))
-  x[, y := -log10(pmax(q, 1e-300))]
+  x <- fread_metilene(DMRD, id, header = FALSE, select = c(1:5, 8),
+             col.names = c("chr", "start", "end", "q", "delta", "p"))
+  # the Bonferroni factor: q / p over the regions with q < 1 (one number per comparison)
+  bf <- x[q < 1, median(q / p)]
+  stopifnot(is.finite(bf), x[q < 1, all(abs(q / p / bf - 1) < 0.01)])
+  x[, y := -log10(pmax(p, 1e-300))]
+  thr <- -log10(0.05 / bf)
   sig <- merge(x[q < 0.05], m[id == comp$id[k], .(chr, start, end, name, context)], by = c("chr", "start", "end"), all.x = TRUE)
-  bg <- x[q >= 0.05][sample(.N, min(.N, 150000))]
+  bg <- x[q >= 0.05]
   p <- ggplot() +
-    geom_point(data = bg, aes(100 * delta, y), colour = "grey80", size = 0.25, alpha = 0.5) +
-    geom_hline(yintercept = -log10(0.05), linetype = 2, colour = "grey50") +
+    geom_point(data = bg, aes(100 * delta, y), colour = "grey70", size = 0.2, alpha = 0.35) +
+    geom_hline(yintercept = thr, linetype = 2, colour = "grey40") +
     geom_point(data = sig, aes(100 * delta, y, colour = delta > 0, shape = context %like% "switch"), size = 2) +
     geom_text_repel(data = sig, aes(100 * delta, y, label = name), size = 2.6, max.overlaps = Inf,
                     min.segment.length = 0, segment.size = 0.2, seed = 1) +
     scale_colour_manual(values = c(`TRUE` = "#B2182B", `FALSE` = "#2166AC"), labels = c(`TRUE` = "gained", `FALSE` = "lost"), name = NULL) +
     scale_shape_manual(values = c(`TRUE` = 17, `FALSE` = 16), labels = c(`TRUE` = "switch region (promoter-exon1-intron1)", `FALSE` = "elsewhere"), name = NULL) +
-    labs(x = sprintf("Methylation change, %s - %s (percentage points)", comp$g1[k], comp$g2[k]), y = "-log10 q (metilene)",
+    labs(x = "Methylation change, first-named minus second-named sample (percentage points)", y = "-log10 p (metilene, 2D Kolmogorov-Smirnov test)",
          title = sprintf("%s%s: %d DMRs at q < 0.05 (%d gained, %d lost)", comp$label[k],
                          ifelse(comp$status[k] == "provisional", " [provisional]", ""), nrow(sig), sum(sig$delta > 0), sum(sig$delta < 0)),
-         subtitle = sprintf("%s regions tested (150,000 shown in grey); DMRs named by switch-region gene, else [nearest gene]",
-                            format(nrow(x), big.mark = ","))) +
+         subtitle = sprintf(paste0("%s regions tested, all drawn (grey); metilene reports only regions differing by at least 10 points (-d 0.1), hence the empty band.\n",
+                                   "Dashed line: q = 0.05, i.e. p = %.1e (Bonferroni over %s tests). DMRs named by switch-region gene, else [nearest gene]."),
+                            format(nrow(x), big.mark = ","), 0.05 / bf, format(round(bf), big.mark = ","))) +
     theme_bw(base_size = 11) + theme(legend.position = "bottom")
   ggsave(file.path(OUT, "volcano", paste0(id, ".png")), p, width = 11, height = 9, dpi = 250)
 }
@@ -61,11 +70,13 @@ u <- merge(u, called, by = "dmr")
 mat <- as.matrix(u[, paste0("meth_", smp), with = FALSE]); colnames(mat) <- lab[smp]; rownames(mat) <- u$name
 cmat <- as.matrix(u[, intersect(comp$id, names(u)), with = FALSE])
 # short comparison names for the "called in" columns: the part in brackets when it names the
-# two samples, else the label without its bracket; * provisional
+# two samples, else the label without its bracket, without "Recipient" ("3.5 years vs 1 month",
+# "DDHN diagnosis vs donor 5 years post donation"); * provisional
 short_lab <- function(l) {
   inner <- sub(".*\\((.* vs .*)\\).*", "\\1", l)
   s <- ifelse(inner != l, inner, sub(" \\(.*\\)$", "", l))
-  sub("^TET2 case: ", "TET2: ", sub("^Engraftment: ", "", s))
+  s <- sub("^TET2 case: ", "TET2: ", sub("^Engraftment: ", "", s))
+  gsub(" vs Donor", " vs donor", gsub("Recipient ", "", s))
 }
 colnames(cmat) <- comp[match(colnames(cmat), id), paste0(short_lab(label), ifelse(status == "provisional", " *", ""))]
 ctx_cols <- c(`switch region (promoter-exon1-intron1)` = "#7B3294", `gene body (beyond intron 1)` = "#C2A5CF", intergenic = "#E7D4E8")
@@ -86,8 +97,8 @@ draw_hm <- function(rows, file, title) {
                 show_row_names = length(rows) <= 120, row_names_gp = gpar(fontsize = 6), column_names_gp = gpar(fontsize = 8),
                 column_names_rot = 40, right_annotation = ha, column_title_gp = gpar(fontsize = 9),
                 na_col = "grey88")
-  png(file, width = 11, height = max(6, min(26, 0.11 * length(rows) + 3)), units = "in", res = 250)
-  draw(hm + hc, column_title = title, merge_legend = TRUE, padding = unit(c(2, 32, 2, 2), "mm"))   # room on the left for the slanted sample names
+  png(file, width = 11, height = max(7.5, min(28, 0.11 * length(rows) + 4.5)), units = "in", res = 250)
+  draw(hm + hc, column_title = title, merge_legend = TRUE, padding = unit(c(8, 32, 2, 2), "mm"))   # room below for the names, left for the slanted sample names
   invisible(dev.off())
 }
 draw_hm(seq_len(nrow(u)), file.path(OUT, "heatmap_all_dmrs.png"),

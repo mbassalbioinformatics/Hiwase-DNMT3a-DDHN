@@ -1,12 +1,12 @@
 id	g1	g2	case	status	label	note	role	large_vs_small	rna_contrast	short	overlap	ceiling
-RECIP_DX_vs_RECIP_T1	RECIP_DX	RECIP_T1	CASE1	final	Transformation (DDHN vs T1)		transformation	no	C2_transform	Transformation	4	
-RECIP_T1_vs_RECIP_D30	RECIP_T1	RECIP_D30	CASE1	final	Clonal establishment (T1 vs day 30)		clonal_establishment	yes	C1_clone	T1 vs day 30	1	1
-RECIP_DX_vs_RECIP_D30	RECIP_DX	RECIP_D30	CASE1	final	Cumulative (DDHN vs day 30)		cumulative	yes	C3_cumulative			
-RECIP_DX_vs_DONOR_T1	RECIP_DX	DONOR_T1	CASE1	final	DDHN vs donor		dx_vs_donor	yes	C4_DDHN_vs_donor	DDHN vs donor	2	2
-RECIP_T1_vs_DONOR_T1	RECIP_T1	DONOR_T1	CASE1	final	T1 vs donor		y35_vs_donor	yes	C5_2yr_vs_donor	T1 vs donor	3	
-RECIP_D30_vs_DONOR_T1	RECIP_D30	DONOR_T1	CASE1	final	Day 30 vs donor (reference)		reference	no	C6_D30_vs_donor	Reference: day 30 vs donor	5	
-DONOR_T1_vs_DONOR_T0	DONOR_T1	DONOR_T0	CASE1	provisional	Donor later vs donor at donation		donor_change	no				
-RECIP_D30_vs_DONOR_T0	RECIP_D30	DONOR_T0	CASE1	provisional	Engraftment: day 30 vs donor at donation		engraftment	no				
-RECIP_T1_vs_DONOR_T0	RECIP_T1	DONOR_T0	CASE1	provisional	T1 vs donor at donation		y35_vs_donor_t0	no				
-RECIP_DX_vs_DONOR_T0	RECIP_DX	DONOR_T0	CASE1	provisional	DDHN vs donor at donation		dx_vs_donor_t0	no				
+RECIP_DX_vs_RECIP_T1	RECIP_DX	RECIP_T1	CASE1	final	Transformation (Recipient DDHN diagnosis vs Recipient 3.5 years)		transformation	no	C2_transform	Transformation	4	
+RECIP_T1_vs_RECIP_D30	RECIP_T1	RECIP_D30	CASE1	final	Clonal establishment (Recipient 3.5 years vs Recipient 1 month)		clonal_establishment	yes	C1_clone	Recipient 3.5 years vs Recipient 1 month	1	1
+RECIP_DX_vs_RECIP_D30	RECIP_DX	RECIP_D30	CASE1	final	Cumulative (Recipient DDHN diagnosis vs Recipient 1 month)		cumulative	yes	C3_cumulative			
+RECIP_DX_vs_DONOR_T1	RECIP_DX	DONOR_T1	CASE1	final	Recipient DDHN diagnosis vs Donor 5 years post donation		dx_vs_donor	yes	C4_DDHN_vs_donor	Recipient DDHN diagnosis vs Donor 5 years post donation	2	2
+RECIP_T1_vs_DONOR_T1	RECIP_T1	DONOR_T1	CASE1	final	Recipient 3.5 years vs Donor 5 years post donation		y35_vs_donor	yes	C5_2yr_vs_donor	Recipient 3.5 years vs Donor 5 years post donation	3	
+RECIP_D30_vs_DONOR_T1	RECIP_D30	DONOR_T1	CASE1	final	Recipient 1 month vs Donor 5 years post donation (reference)		reference	no	C6_D30_vs_donor	Reference: Recipient 1 month vs Donor 5 years post donation	5	
+DONOR_T1_vs_DONOR_T0	DONOR_T1	DONOR_T0	CASE1	provisional	Donor 5 years post donation vs Donor at donation		donor_change	no				
+RECIP_D30_vs_DONOR_T0	RECIP_D30	DONOR_T0	CASE1	provisional	Engraftment: Recipient 1 month vs Donor at donation		engraftment	no				
+RECIP_T1_vs_DONOR_T0	RECIP_T1	DONOR_T0	CASE1	provisional	Recipient 3.5 years vs Donor at donation		y35_vs_donor_t0	no				
+RECIP_DX_vs_DONOR_T0	RECIP_DX	DONOR_T0	CASE1	provisional	Recipient DDHN diagnosis vs Donor at donation		dx_vs_donor_t0	no				
 CASE2_DX_vs_CASE2_A	CASE2_DX	CASE2_A	CASE2	provisional	Case 2: DDHN vs A		case2	no		Case 2: DDHN vs A	0	

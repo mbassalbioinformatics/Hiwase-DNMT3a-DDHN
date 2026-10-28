@@ -2,14 +2,14 @@
 ###############################################################################
 # 04_global_direction.R                                              2026-10-08
 #
-# Which way does methylation move, and where, in each comparison? Uses 1-kb
-# tiles (01_region_methylation.R) annotated by:
+# Which way does methylation move, and where, in each comparison? Uses the genome
+# tiles (01_region_methylation.R; TILE_BP in config/settings.R) annotated by:
 #   CpG-island context  CGI / shore (<= 2 kb) / shelf (2-4 kb) / open sea
 #                       (UCSC cpgIslandExt, hg38)
 #   ENCODE cCRE         PLS (promoter-like) > pELS (proximal enhancer) > dELS
 #                       (distal enhancer) > CTCF-only > DNase-H3K4me3 > none
 #                       (UCSC encodeCcreCombined, cell-type agnostic)
-# A tile counts as lost or gained at |delta| >= 0.25. Single samples carry
+# A tile counts as lost or gained at |delta| >= CUT (0.20). Single samples carry
 # sampling noise, but noise is symmetric, so the balance of losses against
 # gains (net) is the robust read-out: DNMT3A loss is expected to tip it towards
 # losses, TET2 loss towards gains, especially at enhancers.
@@ -20,16 +20,17 @@
 # Output in integration/global_direction/:
 #   direction_by_context.tsv, direction_net.png, delta_correlation.png/.tsv
 ###############################################################################
+source("config/paths.R")
+
 suppressPackageStartupMessages({ library(data.table); library(ggplot2); library(ComplexHeatmap); library(circlize) })
 setDTthreads(8)
-source("config/paths.R")
 COMP <- COMPARISONS
 OUT  <- file.path(INT, "global_direction"); dir.create(OUT, showWarnings = FALSE)
-D_CUT <- 0.25
+D_CUT <- CUT
 
-tw <- fread(cmd = sprintf("gzip -dc '%s'", file.path(INT, "region_methylation", "tiles_1kb_methylation.tsv.gz")))
+tw <- fread(cmd = sprintf("gzip -dc '%s'", TILE_FILE))
 tw[, c("chr", "start") := tstrsplit(id, ":", fixed = TRUE)]
-tw[, `:=`(start = as.integer(start))][, end := start + 999L]
+tw[, `:=`(start = as.integer(start))][, end := start + TILE_BP - 1L]
 comp <- fread(COMP, colClasses = "character")
 
 ## ---- annotation -----------------------------------------------------------------
@@ -75,8 +76,9 @@ print(dir_tab[context == "all", .(id, status, tiles, lost = round(100 * lost, 2)
                                    net_pct = round(100 * net, 2), median_delta = round(median_delta, 4))])
 
 d <- dir_tab[context_type != "all"]
-d[, comparison := factor(paste0(id, ifelse(status == "provisional", " *", "")),
-                         levels = rev(paste0(comp$id, ifelse(comp$status == "provisional", " *", ""))))]
+# rows named by comparison (the clinical team's sample names), not by sample-ID pair
+d[, comparison := factor(paste0(label, ifelse(status == "provisional", " *", "")),
+                         levels = rev(paste0(comp$label, ifelse(comp$status == "provisional", " *", ""))))]
 d[, context := factor(context, levels = c("CGI", "shore", "shelf", "open sea", pri, "none"))]
 p <- ggplot(d, aes(100 * net, comparison, fill = net > 0)) +
   geom_col() + geom_vline(xintercept = 0, colour = "grey40") +
@@ -96,12 +98,15 @@ colnames(dm) <- comp$id
 var_rows <- rowSums(abs(dm) >= 0.10) > 0
 cm <- cor(dm[var_rows, ], method = "spearman")
 fwrite(as.data.table(cm, keep.rownames = "id"), file.path(OUT, "delta_correlation.tsv"), sep = "\t")
-png(file.path(OUT, "delta_correlation.png"), width = 8.5, height = 7.5, units = "in", res = 300)
-draw(Heatmap(cm, name = "Spearman rho", col = colorRamp2(c(-1, 0, 1), c("#2166AC", "white", "#B2182B")),
+# the plot shows comparison names, broken over lines (the table above keeps the IDs)
+brk <- function(x) gsub(" vs ", "\nvs ", sub(" \\(", "\n(", x))
+cmn <- cm; dimnames(cmn) <- list(brk(comp$label), brk(comp$label))
+png(file.path(OUT, "delta_correlation.png"), width = 11, height = 10.5, units = "in", res = 300)
+draw(Heatmap(cmn, name = "Spearman rho", col = colorRamp2(c(-1, 0, 1), c("#2166AC", "white", "#B2182B")),
              cell_fun = function(j, i, x, y, w, h, fill) grid.text(sprintf("%.2f", cm[i, j]), x, y, gp = gpar(fontsize = 7)),
-             row_names_gp = gpar(fontsize = 8), column_names_gp = gpar(fontsize = 8), column_names_rot = 45,
-             column_title = sprintf("How alike the methylation changes are (%s variable 1-kb tiles)", format(sum(var_rows), big.mark = ","))),
-     padding = unit(c(2, 25, 2, 2), "mm"))                     # room on the left for the slanted names
+             row_names_gp = gpar(fontsize = 8), column_names_gp = gpar(fontsize = 8), column_names_rot = 90,
+             column_title = sprintf("How alike the methylation changes are (%s variable %s tiles)", format(sum(var_rows), big.mark = ","), TILE_TXT)),
+     padding = unit(c(2, 4, 2, 2), "mm"))
 invisible(dev.off())
 
 ## ---- do the TET2 case's changes fall where the DNMT3A clone's do? -------------------

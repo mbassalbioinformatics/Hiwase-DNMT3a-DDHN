@@ -26,6 +26,7 @@
 #   bed/<set>/<comparison>.bed  for HOMER annotatePeaks on the server (01_methylation_server/05_homer_annotation.sh)
 ###############################################################################
 source("config/paths.R")
+
 source("04_integration/io_helpers.R")
 suppressPackageStartupMessages(library(data.table))
 setDTthreads(8)
@@ -45,8 +46,11 @@ read_metilene <- function(id) {
   x <- fread_metilene(DMRD, id, header = FALSE, col.names = c("chr", "start", "end", "q", "delta", "n_cpg", "p_mwu", "p_2dks", "mean_g1", "mean_g2"))
   x[q < 0.05]
 }
+# when the second caller's (Defiant) output is absent, the "both" and "defiant" sets are simply empty
 read_defiant <- function(id, g1, g2) {
   f <- list.files(file.path(DMRD, "defiant", id), "_c0_CpN5_d1_G147_p0\\.05_P10\\.tsv$", full.names = TRUE)
+  if (!length(f)) return(data.table(chr = character(), start = integer(), end = integer(), n_cpg = integer(),
+                                    delta = numeric(), mean_g1 = numeric(), mean_g2 = numeric()))
   x <- fread(f, colClasses = list(character = 1))
   setnames(x, 1:6, c("chr", "start", "end", "n_cpg", "n_diff_cpg", "defiant_diff"))
   x[, chr := ifelse(grepl("^chr", chr), chr, paste0("chr", chr))]

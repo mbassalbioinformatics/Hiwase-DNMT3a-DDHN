@@ -24,3 +24,6 @@ RNA_CONTRASTS   <- "config/rnaseq_contrasts.tsv"
 # Optional: point INT or RES elsewhere without editing this file, e.g. for a test run
 INT <- Sys.getenv("DDHN_INT", INT)
 RES <- Sys.getenv("DDHN_RES", RES)
+
+# Shared analysis settings (tile size, the 20-point change); keep this last
+source("config/settings.R")

@@ -34,25 +34,29 @@ TAPS FASTQ ── 01_msuite2.sh ──► alignment + per-CpG C/T counts (Msuite
 RNA BAM ── 01_featurecounts.sh ──► gene and 5'UTR counts ──► 03_rnaseq/02-06 (edgeR, NOISeq,
        │                                                    promoter usage, ORA, GSEA)
        ├─ 02_rmats.sh ──► 03_rnaseq/07_rmats_downstream.R
-       └─ 03_shiba.sh ──► 03_rnaseq/08_shiba_downstream.R
+       ├─ 03_shiba.sh ──► 03_rnaseq/08_shiba_downstream.R
+       └─ 04_kmt2a_ptd_junctions.sh, 05_kmt2a_ptd_fastq.sh ──► KMT2A-PTD junction reads (04_integration/26)
 
-methylation + RNA-seq ── 04_integration/01-17 ──► region methylation, direction of change by
+methylation + RNA-seq ── 04_integration/01-26 ──► region methylation, direction of change by
        genomic context, promoter switches against expression, TF activity, DMR annotation,
        gene panels, Hi-C loops, locus plots, driver mutations and VAFs from the TAPS reads,
        allelic balance along the genome, recipient DNA (chimerism), genome-wide copy
-       number and point mutations (and whether the clone was already in earlier samples)
+       number and point mutations (and whether the clone was already in earlier samples),
+       clone sizes and growth, gene programs in methylation and expression, the
+       recipient's three-way course, the tile-size check, and the RNA-seq search for the
+       KMT2A duplication's junction
 ```
 
 ## Layout
 
 | Folder | Runs on | Contents |
 |---|---|---|
-| `config/` | both | path and sample templates; copy each `*.example.*` to the real name and fill it in |
+| `config/` | both | path and sample templates; copy each `*.example.*` to the real name and fill it in. `settings.R`: the tile size and the 20-point change, shared by several scripts |
 | `01_methylation_server/` | server | Msuite2, TAPS inputs, metilene / Defiant, HOMER, VAF pileups, tool versions |
 | `02_methylation_local/` | analysis computer | sample identity check; allele balance at the identity SNPs; CpG depth summary |
-| `03_rnaseq/server/` | server | featureCounts, rMATS, Shiba |
+| `03_rnaseq/server/` | server | featureCounts, rMATS, Shiba, KMT2A-PTD junction search (`04`, `05`) |
 | `03_rnaseq/` | analysis computer | RNA-seq analysis (`00_config.R`, `01`-`08`, `dge_functions.R`) |
-| `04_integration/` | analysis computer | methylation and RNA-seq integration (`01`-`11`); mutations and VAFs (`13`); allelic balance (`14`); chimerism (`15`); genome-wide copy number (`16`) and point mutations (`17`) |
+| `04_integration/` | analysis computer | methylation and RNA-seq integration (`01`-`11`); mutations and VAFs (`13`); allelic balance (`14`); chimerism (`15`); genome-wide copy number (`16`) and point mutations (`17`); clone sizes, growth and gene programs (`19`); the recipient's three-way course (`20`); tile-size check (`21`); locus plots of the program genes (`22`); program starbursts (`23`); CLU (`25`); KMT2A-PTD junction reads in the RNA-seq (`26`) |
 | `05_variants_server/` | server | genome-wide variants from the TAPS reads: masked BAMs, Mutect2, GATK copy number, annotation, site counts (`run_variants.sh` runs 02-05) |
 | `resources/` | analysis computer | pinned CollecTRI network; download notes for the other annotation |
 | `docs/METHODS.md` | | methods |
@@ -78,7 +82,9 @@ Every script is run from the repository root.
    `vaf/` from `06_vaf_pileup.sh`) to the analysis computer (`emseq/` under `DATA_ROOT`).
    `bash 01_methylation_server/00_tool_versions.sh` records the server's tool versions.
 3. **RNA-seq, on the server:** `03_rnaseq/server/01_featurecounts.sh`, `02_rmats.sh`,
-   `03_shiba.sh`; copy the counts and the rMATS / Shiba folders to `rnaseq/`.
+   `03_shiba.sh`; copy the counts and the rMATS / Shiba folders to `rnaseq/`. For the
+   KMT2A-PTD check run `04_kmt2a_ptd_junctions.sh`, then `05_kmt2a_ptd_fastq.sh`, and copy
+   `09_kmt2a_ptd/` to `rnaseq/`.
 4. **Genome-wide variants, on the server** (after Msuite2; bash >= 4.4, samtools, Docker):
    ```
    bash 05_variants_server/01_inspect_bams.sh                # read-only check of the alignments
@@ -107,6 +113,10 @@ Every script is run from the repository root.
   second-named, in methylation and RNA-seq alike.
 - Methylation is TAPS: a methylated C is read as T. Methylation is the share of T among
   C and T calls at a CpG, both strands combined.
+- Genome tiles are 500 bp, and a tile or promoter changes when it moves by at least 20
+  percentage points (`config/settings.R`; `04_integration/21_tile_size_check.R` shows why).
+- Gene-program scores (NES) follow the same sign as every difference: negative =
+  methylation lost (or expression down) around the program's genes.
 - With one library per timepoint, p-values and FDRs rank features; confidence comes from
   agreement between independent comparisons, a reference comparison (the recipient at
   1 month against the donor 5 years after donation) and recurrence in the second case. See [docs/METHODS.md](docs/METHODS.md).

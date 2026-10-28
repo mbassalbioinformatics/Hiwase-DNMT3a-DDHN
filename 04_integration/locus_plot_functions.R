@@ -203,7 +203,8 @@ locus_plot <- function(L, gene, region = NULL, highlight = NULL, max_cpg = 90,
     r[, label := factor(RNA_SAMPLES$label, levels = RNA_SAMPLES$label)]
     st <- L$de[gene == g0 & contrast %in% c("C1_clone", "C2_transform", "C4_DDHN_vs_donor")]
     note <- if (is.null(rna_note)) paste(sprintf("%s: %+.2f (FDR %.2g)",
-               c(C1_clone = "3.5yr vs D30", C2_transform = "DDHN vs 3.5yr", C4_DDHN_vs_donor = "DDHN vs donor")[st$contrast],
+               c(C1_clone = "3.5 years vs 1 month", C2_transform = "DDHN diagnosis vs 3.5 years",
+                 C4_DDHN_vs_donor = "DDHN diagnosis vs donor 5 years post donation")[st$contrast],
                st$lfc_shrunk, st$FDR), collapse = "\n") else rna_note
     ggplot(r, aes(label, cpm, fill = label)) + geom_col(width = 0.7, colour = "black", linewidth = 0.2) +
       scale_fill_manual(values = setNames(RNA_SAMPLES$colour, RNA_SAMPLES$label), guide = "none") +

@@ -93,9 +93,11 @@ copy-number change in most cells).
 
 ## 3. Differentially methylated regions
 
-**metilene** (primary): per comparison, the two samples' per-CpG methylation joined
+**metilene** (v0.2-9; primary): per comparison, the two samples' per-CpG methylation joined
 with `bedtools unionbedg`, then `metilene -m 3 -d 0.1 -M 147 -f 1` (>= 3 CpGs, mean
-difference >= 0.1, <= 147 bp between CpGs, de novo segmentation). DMRs at q < 0.05.
+difference >= 0.1, <= 147 bp between CpGs, de novo segmentation). DMRs at q < 0.05, where q is
+metilene's two-dimensional Kolmogorov-Smirnov p-value times the number of regions tested
+(Bonferroni; about 12.4 million per comparison).
 
 **Defiant** (second caller): `defiant -b -c 0 -d 1 -G 147 -CpN 5 -p 0.05 -R`. The
 "both" set holds metilene DMRs overlapping a Defiant DMR changing the same way.
@@ -118,8 +120,13 @@ context and ENCODE cCRE class.
 **Libraries.** Stranded poly(A) libraries (Tecan/NuGEN Universal Plus mRNA-Seq),
 MGI DNBSEQ-G400, paired-end 100 bp. Read 1 is in the sense orientation.
 
-**Alignment.** STAR 2.7.10b, to GRCh38 as distributed in the 10x Genomics Cell Ranger
-reference 3.0.0 (alignment run outside this repository; the analysis starts from the BAMs).
+**Read processing and alignment.** Duplicate read pairs removed with Clumpify (BBMap 38.84;
+`dedupe=t subs=0 spany addcount`), adapters trimmed with BBDuk (BBMap 38.84;
+`ktrim=r k=21 mink=8 hdist=2 hdist2=1`) and bases with Trimmomatic 0.39
+(`LEADING:24 SLIDINGWINDOW:4:24 TRAILING:24 MINLEN:20`), read quality checked with FastQC
+0.12.1; then STAR 2.7.10b (`--outFilterMultimapNmax 5 --outFilterScoreMinOverLread 0.25
+--outFilterMatchNminOverLread 0.25`) to GRCh38 as distributed in the 10x Genomics Cell Ranger
+reference 3.0.0 (run outside this repository; the analysis starts from the BAMs).
 
 **Quantification.** featureCounts (Subread 2.1.1) against Ensembl 107:
 `-p --countReadPairs -M -O -J -f -d 20 -s 1 -g gene_id`, at gene level and at
@@ -161,9 +168,11 @@ moves it the same way at raw p < 0.10.
 ## 5. Integration
 
 - **Region methylation.** For each MANE Select gene: promoter (TSS -1,500 to +500),
-  gene body, and the genome in 1-kb tiles; mean of CpGs with >= 5 reads, if >= 3 such
-  CpGs.
-- **Direction by context.** 1-kb tiles changing by >= 0.25, summarised by CpG-island
+  gene body, and the genome in 500-bp tiles (`config/settings.R`); mean of CpGs with >= 5
+  reads, if >= 3 such CpGs. A tile or promoter changes when it moves by >= 0.20 (20 points).
+  `21_tile_size_check.R` compares tiles of 250 bp to 2 kb at 20 and 25 points (tiles called,
+  tiles expected from read-sampling noise, change beyond noise, DMRs picked up).
+- **Direction by context.** 500-bp tiles changing by >= 0.20, summarised by CpG-island
   context (island; shore <= 2 kb; shelf 2-4 kb; open sea) and ENCODE cCRE class (PLS,
   pELS, dELS, CTCF-only, DNase-H3K4me3, none). Overlap between comparisons by Fisher's
   exact test over tiles with data in all libraries.
@@ -261,7 +270,64 @@ in every clone library was measured in every library (mean log2 copy ratio of it
 95% interval) against 60 kb of flanking bins, and its exons taken from the MANE Select
 transcript.
 
-## 7. References
+## 7. Clone sizes, growth and gene programs
+
+Run on the analysis computer with `04_integration/19_clinical_questions.R` (clone sizes, growth,
+programs), `20_three_way_course.R` (the recipient's course), `22_part_a_locus_plots.R` and
+`23_starburst_programs.R` (figures of the program genes) and `25_gene_of_note_clu.R` (CLU).
+
+**Clone sizes.** From the pooled clone test (section 6): the share of cells carrying a clone is
+twice the pooled VAF of its mutations, with twice the exact binomial 95% interval. In the DNMT3A
+case the clone's mutations are split by the donor's later blood (`donor_clone`) into those seen
+there (the donor's own clone) and those not (the branch that became the DDHN); the donor's clone
+in that sample is taken from the clinical VAF (`vaf_pct`, times 2), because the split is defined
+by its reads there.
+
+**Growth.** Logistic growth with a constant advantage: with odds = f / (1 - f) for a clone in a
+fraction f of cells, the log-odds change by s per year, s = ln(odds2 / odds1) / years between the
+samples (from `sample_date` and the case's `hsct_date`), and a small clone doubles every
+ln 2 / s. The interval comes from the earlier sample's interval.
+
+**Gene programs.** For each comparison, every 500-bp tile with data in both samples is assigned
+to the nearest MANE Select TSS within 50 kb. A gene's score is the mean change of its tiles
+(>= 5 tiles), so that promoter and nearby enhancers count together, minus the median score of
+genes in the same of 40 quantile bins of mean surrounding methylation (a library that reads
+methylation slightly higher everywhere would otherwise shift every gene). Genes ranked by score
+go into fgsea (multilevel; seed 1234, `eps = 0`, 10,000 simple permutations, sets of 10-2,000
+genes) with the 50 Hallmark sets, the 29 Human Cell Atlas bone-marrow cell types (MSigDB C8) and
+the 14 gene panels (`07_gene_panels.R`); FDR is Benjamini-Hochberg within each comparison.
+NES < 0: methylation lost around the program's genes, relative to other genes; the share of the
+program's tiles that lost or gained >= 20 points gives the absolute direction. Sensitivity: a
+20-kb window, and promoter tiles only (within 2 kb of the TSS). Expression programs: the same
+sets on each RNA-seq contrast's edgeR statistic (signed square root of the likelihood ratio,
+BCV 0.4).
+
+**The recipient's three-way course.** Every tile and promoter measured at 1 month, 3.5 years and
+DDHN diagnosis gets a trajectory from a = 3.5 years - 1 month and b = diagnosis - 3.5 years
+(change >= 20 points, flat < 10 points): with the clone (a changes, b flat), at diagnosis (a
+flat, b changes), progressive (same sign, both >= 10, a + b >= 20), reversing (opposite signs,
+both >= 20), stable or other. A change with the clone follows the clone when both donor samples,
+whose clone is small, sit within 10 points of 1 month and >= 15 points from the clone samples.
+Programs per trajectory: Fisher's exact test of genes with >= 2 tiles of that trajectory and
+direction against genes with >= 5 tiles. Expression trajectories come from the RNA-seq classes
+(section 4).
+
+## 8. KMT2A partial tandem duplication in the RNA-seq
+
+`03_rnaseq/server/04_kmt2a_ptd_junctions.sh` and `05_kmt2a_ptd_fastq.sh` (server),
+`04_integration/26_kmt2a_ptd_rnaseq.R` (summary). A tandem duplication of KMT2A exons 2-10 makes
+transcripts in which exon 10 is spliced back to exon 2. Probes of 30 bases, 15 from the end of
+the donor exon and 15 from the start of the acceptor exon, were built for all 66 junctions from
+exon i back to exon j <= i (i = 2-12) and the 12 normal junctions of exons 1-13 (MANE Select
+ENST00000534358.8; every probe unique in hg38), and searched as exact matches in either
+orientation: in the aligned reads over the KMT2A locus and the unmapped reads (04), then in every
+read of the trimmed FASTQs (05). A fragment counts once per junction. RNA molecules are distinct
+read starts relative to the junction, since PCR copies of one molecule start at the same base.
+A duplicated transcript has two exon-10 splice donors, so with n molecules across exon 10 the
+chance of seeing no backward junction, if half the transcripts carried the duplication, is
+(2/3)^n.
+
+## 9. References
 
 - Liu Y et al. Bisulfite-free direct detection of 5-methylcytosine and 5-hydroxymethylcytosine at base resolution. *Nat Biotechnol* 2019;37:424-9.
 - Li L et al. Msuite2: all-in-one DNA methylation data analysis toolkit. *Comput Struct Biotechnol J* 2022;20:1271-6.
@@ -283,3 +349,9 @@ transcript.
 - Benjamin D et al. Calling somatic SNVs and indels with Mutect2. *bioRxiv* 2019; doi:10.1101/861054.
 - Karczewski KJ et al. The mutational constraint spectrum quantified from variation in 141,456 humans (gnomAD). *Nature* 2020;581:434-43.
 - Karimzadeh M et al. Umap and Bismap: quantifying genome and methylome mappability. *Nucleic Acids Res* 2018;46:e120.
+- Korotkevich G et al. Fast gene set enrichment analysis. *bioRxiv* 2021; doi:10.1101/060012.
+- Hay SB et al. The Human Cell Atlas bone marrow single-cell interactive web portal. *Exp Hematol* 2018;68:51-61.
+- Fabre MA et al. The longitudinal dynamics and natural history of clonal haematopoiesis. *Nature* 2022;606:335-42.
+- Dobin A et al. STAR: ultrafast universal RNA-seq aligner. *Bioinformatics* 2013;29:15-21.
+- Bolger AM et al. Trimmomatic: a flexible trimmer for Illumina sequence data. *Bioinformatics* 2014;30:2114-20.
+- Liao Y et al. featureCounts: an efficient general purpose program for assigning sequence reads to genomic features. *Bioinformatics* 2014;30:923-30.

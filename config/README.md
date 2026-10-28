@@ -19,7 +19,7 @@ One row per sequenced library, tab-separated, every column read as text.
 | Column | Meaning |
 |---|---|
 | `sample` | library ID, as used in file names (`<sample>_msuite2/`, `<sample>_qual_trimmed.sorted.bam`) |
-| `key` | short role key used in code: `D18` donor at donation, `D30` day 30, `Y35` 3.5 years, `DX` DDHN diagnosis, `D23` donor later sample, `T2A` / `T2DX` second case, `NEG` negative control |
+| `key` | short role key used in code: `D18` donor at donation, `D30` recipient 1 month after transplant, `Y35` recipient 3.5 years after transplant, `DX` DDHN diagnosis, `D23` donor 5 years after donation, `T2A` / `T2DX` second case, `NEG` negative control |
 | `case`, `person` | case (gene) and genotype group from the identity check |
 | `uln` | sequencing library number, found in the FASTQ file names |
 | `methylation` | `analysed` (in every analysis), `control` (Msuite2 only) |

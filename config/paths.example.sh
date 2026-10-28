@@ -34,3 +34,8 @@ CNV_BINS=/path/to/hg38_1000bp_bins.interval_list   # 1-kb bins, e.g. GATK Prepro
 UMAP_BED=/path/to/k100.umap.hg38.bed.gz         # Umap k100 single-read mappability (bismap.hoffmanlab.org)
 SEGDUP_BED=/path/to/hg38.segdups.bed.gz         # segmental duplications (UCSC genomicSuperDups), overlaps merged
 FUNCOTATOR_DIR=/path/to/funcotator_dataSources.v1.8.hg38.20230908s   # GATK Funcotator somatic data sources
+
+# Optional, for the KMT2A-PTD search (03_rnaseq/server/04-05)
+RNA_CONDA_ENV=                                  # conda environment providing samtools; empty = PATH
+RNA_REF_FASTA=                                  # the FASTA the RNA-seq reads were aligned to (re-checks the probes)
+RNA_FASTQ_PATTERN=                              # e.g. /path/to/rnaseq/02_processed_fq/{S}_*R[12]*.fq.gz; empty = from the BAM header

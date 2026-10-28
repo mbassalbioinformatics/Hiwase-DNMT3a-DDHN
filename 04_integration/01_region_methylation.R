@@ -2,7 +2,7 @@
 ###############################################################################
 # 01_region_methylation.R                                            2026-10-08
 #
-# Methylation per gene promoter, per gene body and per 1-kb genomic tile, for
+# Methylation per gene promoter, per gene body and per genomic tile, for
 # every sample, from Msuite2's per-CpG counts (TAPS: methylated = wT + cT,
 # total = wC + wT + cC + cT). This does not depend on DMR
 # calling: every gene gets a value, so subtle methylation changes can be set
@@ -11,7 +11,7 @@
 # Regions, from MANE Select v1.5 (one transcript per gene, hg38):
 #   promoter  TSS -1500 to +500, strand-aware
 #   body      TSS +500 to the transcript end
-#   tiles     1 kb, chr1-22 and chrX
+#   tiles     TILE_BP (config/settings.R: 500 bp), chr1-22 and chrX, from position 1
 # For each region and sample: CpGs covered, CpGs with >= 5 reads, methylated and
 # total reads, and the mean methylation of the CpGs with >= 5 reads. That mean is
 # NA when fewer than 3 such CpGs fall in the region.
@@ -20,18 +20,19 @@
 #   promoter_methylation.tsv.gz   gene x sample, fraction 0-1
 #   promoter_counts.tsv.gz        the counts behind it, long format
 #   body_methylation.tsv.gz       gene x sample
-#   tiles_1kb_methylation.tsv.gz  tile x sample
+#   tiles_500bp_methylation.tsv.gz  tile x sample (TILE_FILE in config/settings.R)
 ###############################################################################
+source("config/paths.R")
+
 suppressPackageStartupMessages(library(data.table))
 setDTthreads(8)
 
-source("config/paths.R")
 EMSEQ <- EMS
 OUT   <- file.path(INT, "region_methylation")
 dir.create(OUT, showWarnings = FALSE, recursive = TRUE)
 
 # every library analysed, in sample-sheet order (timeline order within each case)
-SAMPLES <- fread(SAMPLE_SHEET, colClasses = "character")[methylation == "analysed", sample]
+SAMPLES <- fread(SAMPLE_SHEET, colClasses = "character")[methylation == "analysed"][methylation == "analysed", sample]
 KEEP    <- paste0("chr", c(1:22, "X"))
 MIN_COV <- 5     # reads for a CpG to count towards the mean
 MIN_CPG <- 3     # CpGs at MIN_COV for a region to get a value
@@ -91,8 +92,8 @@ for (s in SAMPLES) {
   x <- read_cpgs(s)
   if (!length(tile_mat)) {                            # tiles from the first sample's extent
     ext <- x[, .(maxpos = max(pos)), by = chr]
-    tiles <- ext[, .(start = seq(1L, maxpos, by = 1000L)), by = chr]
-    tiles[, `:=`(end = start + 999L, id = paste0(chr, ":", start))]
+    tiles <- ext[, .(start = seq(1L, maxpos, by = TILE_BP)), by = chr]
+    tiles[, `:=`(end = start + TILE_BP - 1L, id = paste0(chr, ":", start))]
   }
   p <- region_sums(x, prom); p[, sample := s]
   prom_long[[s]] <- p
@@ -117,5 +118,5 @@ fwrite(rbindlist(prom_long), file.path(OUT, "promoter_counts.tsv.gz"), sep = "\t
 fwrite(wide(body_mat), file.path(OUT, "body_methylation.tsv.gz"), sep = "\t", na = "NA")
 tw <- wide(tile_mat)
 tw <- tw[rowSums(!is.na(tw[, ..SAMPLES])) > 0]
-fwrite(tw, file.path(OUT, "tiles_1kb_methylation.tsv.gz"), sep = "\t", na = "NA")
+fwrite(tw, TILE_FILE, sep = "\t", na = "NA")
 message("written to ", OUT)

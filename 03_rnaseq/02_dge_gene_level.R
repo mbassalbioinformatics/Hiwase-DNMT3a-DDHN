@@ -317,8 +317,8 @@ ggsave(fig("16_axis_scatter.png"),
     geom_hline(yintercept = 0, colour = "grey70") +
     geom_vline(xintercept = 0, colour = "grey70") +
     geom_point(alpha = .6, size = 1.4) + scale_colour_brewer(palette = "Set1") +
-    labs(x = "log2FC  clonal establishment  (3.5yr - D30)",
-         y = "log2FC  transformation  (DDHN - 3.5yr)",
+    labs(x = "log2FC  clonal establishment  (3.5 years - 1 month)",
+         y = "log2FC  transformation  (DDHN diagnosis - 3.5 years)",
          title = "The two axes are not independent",
          subtitle = sprintf(paste0("r = %.2f across all genes, %.2f among genes that moved.\n",
                                    "Both axes contain the 2-year library with opposite signs, so part of this is built in."),

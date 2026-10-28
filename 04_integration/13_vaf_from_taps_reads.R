@@ -258,12 +258,13 @@ ann <- keys[, annotate_one(chr, pos, ref, alt, gene), by = .(chr, pos, ref, alt,
 ## ---- hotspot codons: any non-reference read, every sample --------------------
 # Codons recurrently mutated in clonal haematopoiesis and myeloid neoplasms. The genomic
 # positions come from the MANE CDS, and the reference amino acid is checked.
-HOT <- data.table(gene = c("DNMT3A", "IDH1", "IDH2", "IDH2", "JAK2", "SF3B1", "SF3B1", "SRSF2", "U2AF1", "U2AF1",
+# DNMT3A R729 is also checked (expected absent from donor-derived samples)
+HOT <- data.table(gene = c("DNMT3A", "DNMT3A", "IDH1", "IDH2", "IDH2", "JAK2", "SF3B1", "SF3B1", "SRSF2", "U2AF1", "U2AF1",
                            "NRAS", "NRAS", "NRAS", "KRAS", "KRAS", "KRAS", "TP53", "TP53", "TP53", "GNB1",
                            "FLT3", "KIT", "MPL", "SETBP1", "SETBP1"),
-                  codon = c(882L, 132L, 140L, 172L, 617L, 666L, 700L, 95L, 34L, 157L, 12L, 13L, 61L, 12L, 13L, 61L,
+                  codon = c(882L, 729L, 132L, 140L, 172L, 617L, 666L, 700L, 95L, 34L, 157L, 12L, 13L, 61L, 12L, 13L, 61L,
                             175L, 248L, 273L, 57L, 835L, 816L, 515L, 868L, 870L),
-                  aa = c("R", "R", "R", "R", "V", "K", "K", "P", "S", "Q", "G", "G", "Q", "G", "G", "Q",
+                  aa = c("R", "R", "R", "R", "R", "V", "K", "K", "P", "S", "Q", "G", "G", "Q", "G", "G", "Q",
                          "R", "R", "R", "K", "D", "D", "W", "D", "G"))
 hot <- rbindlist(lapply(seq_len(nrow(HOT)), function(i) {
   t <- tx_info[gene == HOT$gene[i]][1]

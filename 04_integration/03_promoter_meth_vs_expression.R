@@ -40,11 +40,12 @@
 #                                           against methylation, zoomed, every gene named
 #   starburst_<contrast>_B_discordant.png   the same for the two quadrants where it moves with methylation
 ###############################################################################
-suppressPackageStartupMessages({ library(data.table); library(ggplot2); library(ggrepel); library(patchwork) })
 source("config/paths.R")
+
+suppressPackageStartupMessages({ library(data.table); library(ggplot2); library(ggrepel); library(patchwork) })
 OUT <- file.path(INT, "meth_vs_expr"); dir.create(OUT, showWarnings = FALSE)
 source("03_rnaseq/00_config.R")
-D_MIN <- 0.10; LFC_MIN <- 0.5; SW_MIN <- 0.20
+D_MIN <- 0.10; LFC_MIN <- 0.5; SW_MIN <- CUT   # CUT: config/settings.R (20 points)
 
 pm <- fread(cmd = sprintf("gzip -dc '%s'", file.path(INT, "region_methylation", "promoter_methylation.tsv.gz")))
 mg <- fread(cmd = sprintf("gzip -dc '%s'", file.path(INT, "region_methylation", "mane_select_genes.tsv.gz")))
@@ -153,7 +154,7 @@ for (cid in CONTRASTS$id) {
   d[, face := fifelse(sig %in% TRUE, "bold", "plain")]
   is_don <- cid %in% CONTRASTS[class == "context", id]
   s <- tests[contrast == cid]
-  xlab <- sprintf("Promoter methylation change, %s - %s (points)", CONTRASTS[cid, num], CONTRASTS[cid, den])
+  xlab <- "Promoter methylation change, first-named minus second-named sample (points)"
   for (panel in c("A_concordant", "B_discordant")) {
     q <- if (panel == "A_concordant") c("hypo-up", "hyper-down") else c("hypo-down", "hyper-up")
     ov <- ggplot(d, aes(delta * 100, lfc)) +
@@ -178,7 +179,7 @@ for (cid in CONTRASTS$id) {
                         segment.size = 0.25, segment.colour = "grey55", box.padding = 0.18, point.padding = 0.1,
                         force = 3, force_pull = 0.3, max.time = 5, max.iter = 1e5, seed = 1, xlim = xr, ylim = yr) +
         { if (is_don) scale_shape_manual(values = c(`FALSE` = 16, `TRUE` = 4), drop = FALSE,
-                                         name = "Promoter also changes in the reference comparison (day 30 vs donor)") } +
+                                         name = "Promoter also changes in the reference comparison (Recipient 1 month vs Donor 5 years post donation)") } +
         coord_cartesian(xlim = xr, ylim = yr, expand = FALSE) +
         labs(x = xlab, y = "Expression change (shrunk log2FC)", title = sprintf("%s: %d genes", qname[[k]], nrow(dq))) +
         theme_bw(base_size = 12) + theme(plot.title = element_text(colour = cols[[k]], face = "bold"), legend.position = "bottom")

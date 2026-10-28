@@ -17,6 +17,9 @@ Versions used for the analysis.
 | circlize | 0.4.18 |
 | decoupleR | 2.17.0 |
 | msigdbr | 26.1.1 |
+| fgsea | 1.38.0 |
+| ggnewscale | 0.5.2 |
+| scales | 1.4.0 |
 | jsonlite | 2.0.0 |
 | edgeR | 4.10.5 |
 | limma | 3.68.5 |
@@ -44,12 +47,15 @@ Recorded with `bash 01_methylation_server/00_tool_versions.sh` (PATH and every c
 | bowtie2 | 2.5.4 | used by Msuite2 |
 | samtools | 1.21 | VAF pileups |
 | bedtools | 2.31.1 | metilene inputs |
-| metilene | not printed by the binary | |
+| metilene | 0.2-9 | the binary does not print its version |
 | Defiant | not printed by the binary | |
 | HOMER | 4.11.1 | conda environment `chipap` |
 | featureCounts (Subread) | 2.1.1 | |
 | rMATS-turbo | 4.3.0 | |
 | Shiba | 0.8.2 | |
+| BBMap (Clumpify, BBDuk) | 38.84 | RNA-seq read de-duplication and adapter trimming |
+| Trimmomatic | 0.39 | RNA-seq quality trimming |
+| FastQC | 0.12.1 | RNA-seq read quality |
 | STAR | 2.7.10b | RNA-seq alignment |
 | Python | 3.9.18 | |
 | R | 4.6.1 | |

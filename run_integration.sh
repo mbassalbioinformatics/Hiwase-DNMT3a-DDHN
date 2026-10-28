@@ -4,18 +4,20 @@
 # Runs the methylation x RNA-seq integration (04_integration/) in order, from
 # the repository root. Needs config/paths.R and the config tables, the Msuite2
 # per-CpG files and DMR results copied from the server, the RNA-seq results and,
-# for 16-17, the genome-wide variant output (emseq/04_variants/, 05_variants_server/).
+# for 16-17, the genome-wide variant output (emseq/04_variants/, 05_variants_server/),
+# for 26, the KMT2A-PTD junction search (rnaseq/09_kmt2a_ptd/, 03_rnaseq/server/04-05).
 #   bash run_integration.sh            every step
 #   bash run_integration.sh 06 10      only the listed steps
-# The locus-plot galleries (05, 10) are the slow part (~20 min).
+# The locus-plot galleries (05, 10, 22) and the tile-size check (21) are the slow part.
 # Log: integration_run.log
 ###############################################################################
 set -uo pipefail
 cd "$(dirname "$0")"
 STEPS=(01_region_methylation 02_tf_activity 03_promoter_meth_vs_expression 04_global_direction
-       07_gene_panels 06_dmr_master 08_dmr_plots 09_hic_loops 11_homer_summary
+       07_gene_panels 06_dmr_master 21_tile_size_check 08_dmr_plots 09_hic_loops 11_homer_summary
        13_vaf_from_taps_reads 14_allelic_imbalance 15_chimerism 16_genomewide_cnv 17_genomewide_snvs
-       05_locus_plot_gallery 10_dmr_locus_gallery)
+       19_clinical_questions 20_three_way_course 22_part_a_locus_plots 23_starburst_programs
+       25_gene_of_note_clu 26_kmt2a_ptd_rnaseq 05_locus_plot_gallery 10_dmr_locus_gallery)
 LOG=integration_run.log
 want=("$@")
 for s in "${STEPS[@]}"; do
